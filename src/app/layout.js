@@ -1,5 +1,11 @@
+import React from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { ClerkProvider, SignInButton, UserButton } from "@clerk/nextjs";
+import dynamic from "next/dynamic";
+import Navbar from "@/components/layout/navbar";
+
+ 
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -10,8 +16,13 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
-    </html>
+    <ClerkProvider afterSignInUrl="/" afterSignUpUrl="/">
+      <html lang="fr">
+        <body className="bg-center bg-cover bg-no-repeat bg-fixed">
+          <Navbar></Navbar>
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
