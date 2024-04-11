@@ -1,0 +1,67 @@
+get all triggers of my database 
+ 
+for client table here is the trigger name:
+ -client_created_at_trigger
+ -handle_updated_at
+
+for paymenthistory table the trigger name:
+ -after_insert_payment
+
+ 
+SELECT tgname AS table_name,
+       tgrelid::regclass AS table_name,
+       pg_get_triggerdef(oid) AS trigger_definition
+FROM pg_trigger;
+
+
+
+**get single trigger
+SELECT pg_get_triggerdef(t.oid) AS trigger_definition
+FROM pg_trigger t
+JOIN pg_class c ON t.tgrelid = c.oid
+WHERE t.tgname = 'after_insert_payment';
+
+i think this is the query that allow me to generate all tables
+-- Supabase AI is experimental and may produce incorrect answers
+-- Always verify the output before executing
+
+create table
+  public.client (
+    client_id bigint primary key generated always as identity,
+    nom character varying(100) null,
+    prenom character varying(100) null,
+    cin character varying(20) null,
+    num_tel character varying(20) null,
+    date_exam date null,
+    prix_restant numeric(10, 2) null,
+    prix_total numeric(10, 2) null,
+    prix_paye numeric(10, 2) null,
+    user_id text not null,
+    updated_at timestamp with time zone null,
+    created_at timestamp with time zone null,
+    "isDeleted" boolean null default false,
+    constraint client_pkey1 primary key (client_id),
+    constraint client_user_id_fkey foreign key (user_id) references "user" (user_id)
+  ) tablespace pg_default;
+
+create table
+  public.paymenthistory (
+    payment_id bigint primary key generated always as identity,
+    client_id integer not null,
+    payment_date timestamp without time zone null default current_timestamp,
+    amount numeric(10, 2) null,
+    user_id character varying(255) null,
+    constraint paymenthistory_pkey primary key (payment_id),
+    constraint paymenthistory_client_id_fkey foreign key (client_id) references client (client_id),
+    constraint paymenthistory_user_id_fkey foreign key (user_id) references "user" (user_id)
+  ) tablespace pg_default;
+
+create table
+  public.user (
+    id bigint primary key generated always as identity,
+    user_id character varying(255) not null,
+    email character varying(255) not null,
+    constraint user_pkey primary key (id),
+    constraint user_email_key unique (email),
+    constraint user_user_id_key unique (user_id)
+  ) tablespace pg_default;
