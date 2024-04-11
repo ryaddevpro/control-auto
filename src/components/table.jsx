@@ -16,6 +16,7 @@ import { auth, useAuth } from "@clerk/nextjs";
 import { getData, sortedData } from "@/app/page";
 import PaymentHistory from "./payment-history";
 import toast from "react-hot-toast";
+import ConfirmDialog from "./modals/confirm-modal";
 
 const csvConfig = mkConfig({
   fieldSeparator: ",",
@@ -25,10 +26,26 @@ const csvConfig = mkConfig({
 
 const Table = ({ initialData }) => {
   const [data, setData] = useState(initialData); // State to hold data
+  const [confirmModal, setConfirmModal] = useState(false);
+  const [token, setToken] = useState("");
+  const [validationErrors, setValidationErrors] = useState({});
+  const { getToken, isLoaded, isSignedIn } = useAuth();
 
   useEffect(() => {
-    setData(initialData); // Update data when initialData changes
-  }, [initialData]);
+    const fetchData = async () => {
+      try {
+        setData(initialData); // Update data when initialData changes
+        const token = await getToken();
+        setToken(token);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        // Handle error state here, for example:
+        // setErrorMessage("Failed to fetch data. Please try again.");
+      }
+    };
+
+    fetchData();
+  }, [initialData, getToken]);
 
   const handleExportRows = (rows) => {
     const rowData = rows.map((row) => row.original);
@@ -40,8 +57,6 @@ const Table = ({ initialData }) => {
     const csv = generateCsv(csvConfig)(data);
     download(csvConfig)(csv);
   };
-  const [validationErrors, setValidationErrors] = useState({});
-  const { getToken, isLoaded, isSignedIn } = useAuth();
 
   const columns = useMemo(
     () => [
@@ -154,6 +169,7 @@ const Table = ({ initialData }) => {
                   clientId={getClientId}
                   open={open}
                   close={handleClose}
+                  prix_total={cell.row.original.prix_total}
                 />
               }
               {cell.getValue()}
@@ -177,7 +193,7 @@ const Table = ({ initialData }) => {
         accessorKey: "date_exam",
         header: "date_exam",
         muiEditTextFieldProps: {
-          type: "date_exam",
+          type: "date",
           required: true,
           error: !!validationErrors?.date_exam,
           helperText: validationErrors?.date_exam,
@@ -245,38 +261,32 @@ const Table = ({ initialData }) => {
 
   //DELETE action
   const openDeleteConfirmModal = async (row) => {
-    const client_id = row.original.client_id;
-
-    try {
-      const response = await fetch(
-        `http://localhost:3000/api/client/${client_id}`,
-        {
-          method: "DELETE", // Specify the POST method
-          headers: {
-            "Content-Type": "application/json", // Set the Content-Type header if needed
-            Authorization: `Bearer ${await getToken()}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch data");
-      }
-
-      // If you expect a response, you can handle it here
-      const okResponse = await response.json();
-      toast.success("client deleted avec success!");
-
-      table.setEditingRow(null); //exit editing mode
-      const updatedData = await getData(await getToken());
-      setData(sortedData(updatedData));
-
-      return okResponse;
-    } catch (error) {
-      toast.error("une erreur est survenu");
-
-      console.error("Error:", error);
-    }
+    // const client_id = row.original.client_id;
+    // try {
+    //   const response = await fetch(
+    //     `http://localhost:3000/api/client/${client_id}`,
+    //     {
+    //       method: "DELETE", // Specify the POST method
+    //       headers: {
+    //         "Content-Type": "application/json", // Set the Content-Type header if needed
+    //         Authorization: `Bearer ${await getToken()}`,
+    //       },
+    //     }
+    //   );
+    //   if (!response.ok) {
+    //     throw new Error("Failed to fetch data");
+    //   }
+    //   // If you expect a response, you can handle it here
+    //   const okResponse = await response.json();
+    //   toast.success("client deleted avec success!");
+    //   table.setEditingRow(null); //exit editing mode
+    //   const updatedData = await getData(await getToken());
+    //   setData(sortedData(updatedData));
+    //   return okResponse;
+    // } catch (error) {
+    //   toast.error("une erreur est survenu");
+    //   console.error("Error:", error);
+    // }
   };
 
   const table = useMaterialReactTable({
@@ -345,10 +355,18 @@ const Table = ({ initialData }) => {
           </IconButton>
         </Tooltip>
         <Tooltip title="Delete">
-          <IconButton color="error" onClick={() => openDeleteConfirmModal(row)}>
+          <IconButton
+            color="error"
+            onClick={() => {
+              setConfirmModal(true);
+              document.getElementById("my_modal_2")?.showModal();
+              openDeleteConfirmModal(row);
+            }}
+          >
             <DeleteIcon />
           </IconButton>
         </Tooltip>
+        {<ConfirmDialog rowClient={row} token={`${token}`} />}
       </Box>
     ),
   });
@@ -356,10 +374,13 @@ const Table = ({ initialData }) => {
   return <MaterialReactTable table={table} />;
 };
 
-const TableWithProviders = ({ data }) => (
-  //Put this with your other react-query providers near root of your app
-  <Table initialData={data} />
-);
+const TableWithProviders = ({ data }) => {
+  return (
+    //Put this with your other react-query providers near root of your app
+
+    <Table initialData={data} />
+  );
+};
 
 export default TableWithProviders;
 

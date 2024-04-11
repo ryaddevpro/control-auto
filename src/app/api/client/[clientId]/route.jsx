@@ -26,7 +26,7 @@ export async function DELETE(request, { params }) {
     const { clientId } = params;
     const { error } = await supabase
       .from("client")
-      .delete()
+      .update({ isDeleted: true })
       .eq("client_id", clientId);
 
     if (error) {

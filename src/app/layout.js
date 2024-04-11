@@ -1,11 +1,9 @@
 import React from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ClerkProvider, SignInButton, UserButton } from "@clerk/nextjs";
-import dynamic from "next/dynamic";
+import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "@/components/layout/navbar";
-
- 
+import { CounterStoreProvider } from "@/providers/counter-store-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,8 +17,8 @@ export default function RootLayout({ children }) {
     <ClerkProvider afterSignInUrl="/" afterSignUpUrl="/">
       <html lang="fr">
         <body className="bg-center bg-cover bg-no-repeat bg-fixed">
-          <Navbar></Navbar>
-          {children}
+          <Navbar />
+          <CounterStoreProvider>{children}</CounterStoreProvider>
         </body>
       </html>
     </ClerkProvider>

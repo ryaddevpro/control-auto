@@ -73,8 +73,9 @@ const Modal = () => {
       label: "Prix Payé",
       placeholder: "Enter paid price",
       type: "number",
+      required: false,
     },
-    { id: "date_exam", label: "Date of Exam", type: "date", required: true },
+    { id: "date_exam", label: "Date of Exam", type: "date", required: false },
   ];
 
   return (
@@ -115,7 +116,10 @@ const Modal = () => {
                       </label>
                       <input
                         {...register(field.id, {
-                          required: field.required || true,
+                          required:
+                            field.required !== undefined
+                              ? field.required
+                              : true,
                         })}
                         className="flex h-10 w-full input input-primary focus:border-none"
                         id={field.id}

@@ -9,7 +9,8 @@ export async function GET(request) {
     const { data: clients, error } = await supabase
       .from("client")
       .select()
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .eq("isDeleted", false);
 
     if (error) {
       throw new Error("Failed to fetch data");
@@ -32,12 +33,12 @@ export async function POST(request) {
       nom,
       prenom,
       cin,
-      prix_total,
-      prix_paye,
-      prix_restant: prix_total - prix_paye,
-      date_exam,
+      prix_total: prix_total || null,
+      prix_paye: prix_paye || null,
+      prix_restant: prix_total - prix_paye || null,
+      date_exam: date_exam || null,
       user_id: userId,
-      num_tel,
+      num_tel: num_tel || null,
     });
 
     if (error) {

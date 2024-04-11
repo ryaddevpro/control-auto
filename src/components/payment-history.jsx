@@ -1,7 +1,43 @@
 import { auth, useAuth } from "@clerk/nextjs";
 import { Box, IconButton, Modal } from "@mui/material";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 import { IoClose } from "react-icons/io5";
+
+const addPayment = async (token = null, clientId, amount) => {
+  try {
+    const headers = {
+      "Content-Type": "application/json",
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    } else {
+      const authToken = await getToken();
+      headers.Authorization = `Bearer ${authToken}`;
+    }
+
+    const response = await fetch(
+      `http://localhost:3000/api/payment/${clientId}`,
+      {
+        method: "POST",
+        headers: headers,
+        cache: "no-cache",
+        body: JSON.stringify(amount),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch data");
+    }
+
+    const data = await response.json();
+    return data?.clientPayments;
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
 
 export const getData = async (token = null, clientId) => {
   try {
@@ -44,9 +80,28 @@ function formatDate(dateString) {
   return `${day} ${month} ${year}`;
 }
 
-const PaymentHistory = ({ clientId, open, close }) => {
-  const { userId, getToken } = useAuth();
+const PaymentHistory = ({ clientId, open, close, prix_total }) => {
+  const { getToken } = useAuth();
   const [data, setData] = useState([]);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
+
+  const router = useRouter();
+
+  const onSubmit = async (data) => {
+    try {
+      await addPayment(await getToken(), clientId, data);
+      reset(); // Reset the form
+      fetchData(); // Refetch the data
+      router.refresh();
+    } catch (error) {
+      console.error("Error adding payment:", error);
+    }
+  };
 
   const style = {
     position: "absolute",
@@ -97,6 +152,28 @@ const PaymentHistory = ({ clientId, open, close }) => {
             {data[0]?.client?.nom} {data[0]?.client?.prenom}
           </b>
         </h2>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="py-4">
+          <div className="flex gap-4 justify-end">
+            <div>
+              <label className="input flex-grow input-bordered flex items-center gap-2">
+                <input
+                  type="text"
+                  className="grow"
+                  placeholder="combien il va payer aujourd'hui ?"
+                  {...register("amount", { required: true })}
+                />
+              </label>
+              <p className="text-red-500">
+                {errors?.amount && <span>This field is required</span>}
+              </p>
+            </div>
+            <button className="btn btn-secondary" type="submit">
+              ajouter
+            </button>
+          </div>
+        </form>
+
         <div className="overflow-x-auto bg-white">
           <table className="table bg-white">
             {/* head */}
@@ -115,54 +192,19 @@ const PaymentHistory = ({ clientId, open, close }) => {
                   </tr>
                 );
               })}
-              {/* row 1 */}
-              {/* row 2 */}
             </tbody>
           </table>
         </div>
+        <h1>
+          prix restant:{" "}
+          {+prix_total -
+            data.reduce((total, payment) => {
+              return total + payment.amount;
+            }, 0)}
+        </h1>
       </Box>
     </Modal>
   );
 };
 
 export default PaymentHistory;
-
-// <div>
-//   <dialog id="my_modal_4" className="modal ">
-//     <div className="modal-box bg-white  w-auto">
-//       <form method="dialog">
-//         {/* if there is a button in form, it will close the modal */}
-//         <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-//           ✕
-//         </button>
-//       </form>
-//       <div className="overflow-x-auto bg-white">
-//         <table className="table bg-white">
-//           {/* head */}
-//           <thead>
-//             <tr>
-//               <th></th>
-//               <th>Name</th>
-//               <th>Job</th>
-//               <th>Favorite Color</th>
-//             </tr>
-//           </thead>
-//           <tbody>
-//             {data.map((x, index) => {
-//               return (
-//                 <tr key={index} className="bg-base-200">
-//                   <th>1</th>
-//                   <td>{x.amount}DH</td>
-//                   <td>{x.payment_date}</td>
-//                   <td>{x.user_id}</td>
-//                 </tr>
-//               );
-//             })}
-//             {/* row 1 */}
-//             {/* row 2 */}
-//           </tbody>
-//         </table>
-//       </div>
-//     </div>
-//   </dialog>
-// </div>

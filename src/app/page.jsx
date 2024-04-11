@@ -1,5 +1,7 @@
-import Modal from "@/components/modal";
+import Modal from "@/components/modals/modal";
+import { HomePage } from "@/components/pages/home-page";
 import TableWithProviders from "@/components/table";
+import { CounterStoreProvider } from "@/providers/counter-store-provider";
 import { currentUser } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs";
 import React from "react";
@@ -39,7 +41,6 @@ export const getData = async (token = null) => {
   }
 };
 
-
 export const sortedData = (data) => {
   return data.slice().sort((a, b) => {
     // Convert the date strings to Date objects for comparison
@@ -75,6 +76,9 @@ export default async function Home() {
 
   return (
     <React.Fragment>
+      {/* <CounterStoreProvider>
+        <HomePage />
+      </CounterStoreProvider> */}
       <Toaster position="top-right" reverseOrder={false} />
       <header className="my-12">
         <h1 className="text-4xl text-center font-semibold font-serif">
