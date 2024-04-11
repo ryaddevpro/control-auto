@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { FaUserPlus } from "react-icons/fa";
 
-const Modal = () => {
+const CreateUserModal = () => {
   const {
     register,
     handleSubmit,
@@ -149,4 +149,4 @@ const Modal = () => {
   );
 };
 
-export default Modal;
+export default CreateUserModal;

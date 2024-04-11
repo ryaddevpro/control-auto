@@ -16,10 +16,10 @@ FROM pg_trigger;
 
 
 **get single trigger
-SELECT pg_get_triggerdef(t.oid) AS trigger_definition
-FROM pg_trigger t
-JOIN pg_class c ON t.tgrelid = c.oid
-WHERE t.tgname = 'after_insert_payment';
+  SELECT pg_get_triggerdef(t.oid) AS trigger_definition
+  FROM pg_trigger t
+  JOIN pg_class c ON t.tgrelid = c.oid
+  WHERE t.tgname = 'after_insert_payment';
 
 i think this is the query that allow me to generate all tables
 -- Supabase AI is experimental and may produce incorrect answers

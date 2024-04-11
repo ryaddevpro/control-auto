@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { IoClose } from "react-icons/io5";
+import toast from "react-hot-toast";
 
 const addPayment = async (token = null, clientId, amount) => {
   try {
@@ -29,10 +30,12 @@ const addPayment = async (token = null, clientId, amount) => {
     );
 
     if (!response.ok) {
+      toast.error("il y a une erreur");
       throw new Error("Failed to fetch data");
     }
 
     const data = await response.json();
+    toast.success("client mis a jour");
     return data?.clientPayments;
   } catch (error) {
     console.error("Error:", error);
@@ -108,13 +111,14 @@ const PaymentHistory = ({ clientId, open, close, prix_total }) => {
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
-    width: "50%", // Adjusted width to 80% of the viewport width
+    width: "80%", // Adjusted width to 80% of the viewport width
+    maxWidth: "600px", // Set a maximum width if needed
     bgcolor: "background.paper",
     boxShadow: 24,
     p: 2,
     borderRadius: 2, // Adding borderRadius to make it rounded
   };
-
+    
   const fetchData = useMemo(
     () => async () => {
       try {
@@ -139,6 +143,7 @@ const PaymentHistory = ({ clientId, open, close, prix_total }) => {
       onClose={close}
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
+      className=""
     >
       <Box sx={style}>
         <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
@@ -153,8 +158,8 @@ const PaymentHistory = ({ clientId, open, close, prix_total }) => {
           </b>
         </h2>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="py-4">
-          <div className="flex gap-4 justify-end">
+        <form onSubmit={handleSubmit(onSubmit)} className="py-4 ">
+          <div className="flex gap-4 justify-end ">
             <div>
               <label className="input flex-grow input-bordered flex items-center gap-2">
                 <input

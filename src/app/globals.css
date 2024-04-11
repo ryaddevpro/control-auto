@@ -12,3 +12,13 @@ html {
 .cl-internal-b3fm6y {
   display: none;
 }
+
+.cl-rootBox,
+.cl-signIn-root,
+.cl-internal-phfxlr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100%; /* h-screen equivalent */
+}

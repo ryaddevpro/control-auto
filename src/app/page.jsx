@@ -1,4 +1,4 @@
-import Modal from "@/components/modals/modal";
+import Modal from "@/components/modals/create-user-modal";
 import { HomePage } from "@/components/pages/home-page";
 import TableWithProviders from "@/components/table";
 import { CounterStoreProvider } from "@/providers/counter-store-provider";

@@ -30,8 +30,18 @@ const confirmDelete = async (row, token) => {
   }
 };
 
-const ConfirmDialog = ({ rowClient, token }) => {
+const ConfirmDeleteDialog = ({ rowClient, token }) => {
   const router = useRouter();
+
+  const deleteClient = async () => {
+    try {
+      await confirmDelete(rowClient, token);
+      router.refresh();
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   return (
     <dialog id="my_modal_2" className="modal">
       <div className="modal-box">
@@ -46,8 +56,7 @@ const ConfirmDialog = ({ rowClient, token }) => {
             <button
               className="btn btn-danger "
               onClick={() => {
-                confirmDelete(rowClient, token);
-                router.refresh();
+                deleteClient();
               }}
             >
               Supprimez
@@ -59,4 +68,4 @@ const ConfirmDialog = ({ rowClient, token }) => {
   );
 };
 
-export default ConfirmDialog;
+export default ConfirmDeleteDialog;

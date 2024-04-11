@@ -16,7 +16,7 @@ import { auth, useAuth } from "@clerk/nextjs";
 import { getData, sortedData } from "@/app/page";
 import PaymentHistory from "./payment-history";
 import toast from "react-hot-toast";
-import ConfirmDialog from "./modals/confirm-modal";
+import ConfirmDeleteDialog from "./modals/confirm-delete-modal";
 
 const csvConfig = mkConfig({
   fieldSeparator: ",",
@@ -147,6 +147,7 @@ const Table = ({ initialData }) => {
       {
         accessorKey: "prix_restant",
         header: "prix_restant",
+        enableEditing: false,
         Cell: ({ cell }) => {
           const [getClientId, setGetClientId] = useState(null);
           const [open, setOpen] = useState(false);
@@ -366,7 +367,7 @@ const Table = ({ initialData }) => {
             <DeleteIcon />
           </IconButton>
         </Tooltip>
-        {<ConfirmDialog rowClient={row} token={`${token}`} />}
+        {<ConfirmDeleteDialog rowClient={row} token={`${token}`} />}
       </Box>
     ),
   });
