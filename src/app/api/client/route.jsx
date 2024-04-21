@@ -42,6 +42,7 @@ export async function POST(request) {
     });
 
     if (error) {
+      console.log(error);
       throw new Error("Failed to insert data");
     }
 

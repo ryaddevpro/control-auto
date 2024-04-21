@@ -2,21 +2,19 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   MaterialReactTable,
-  // createRow,
   useMaterialReactTable,
 } from "material-react-table";
 import { Box, Button, IconButton, Tooltip } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { mkConfig, generateCsv, download } from "export-to-csv"; //or use your library of choice here
+import { mkConfig, generateCsv, download } from "export-to-csv";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import Link from "next/link";
 import { FaHistory } from "react-icons/fa";
 import { auth, useAuth } from "@clerk/nextjs";
 import { getData, sortedData } from "@/app/page";
-import PaymentHistory from "./payment-history";
-import toast from "react-hot-toast";
-import ConfirmDeleteDialog from "./modals/confirm-delete-modal";
+import PaymentHistory from "../payment-history";
+import ConfirmDeleteDialog from "../modals/confirm-delete-modal";
+import Sortie from "./sortie";
 
 const csvConfig = mkConfig({
   fieldSeparator: ",",
@@ -39,8 +37,6 @@ const Table = ({ initialData }) => {
         setToken(token);
       } catch (error) {
         console.error("Error fetching data:", error);
-        // Handle error state here, for example:
-        // setErrorMessage("Failed to fetch data. Please try again.");
       }
     };
 
@@ -60,93 +56,60 @@ const Table = ({ initialData }) => {
 
   const columns = useMemo(
     () => [
+      // {
+      //   accessorKey: "id",
+      //   header: "N°",
+      //   enableColumnFilter: true,
+      //   enableEditing: false,
+      //   muiEditTextFieldProps: {
+      //     required: true,
+      //     error: !!validationErrors?.id,
+      //     helperText: validationErrors?.id,
+      //     //remove any previous validation errors when user focuses on the input
+      //     onFocus: () =>
+      //       setValidationErrors({
+      //         ...validationErrors,
+      //         id: undefined,
+      //       }),
+      //     //optionally add validation checking for onBlur or onChange
+      //   },
+      // },
+      // {
+      //   accessorKey: "description",
+      //   header: "description",
+      //   enableEditing: false,
+      //   muiEditTextFieldProps: {
+      //     type: "string",
+      //     required: true,
+      //     error: !!validationErrors?.cin,
+      //     helperText: validationErrors?.cin,
+      //     //remove any previous validation errors when user focuses on the input
+      //     onFocus: () =>
+      //       setValidationErrors({
+      //         ...validationErrors,
+      //         cin: undefined,
+      //       }),
+      //   },
+      // },
       {
-        accessorKey: "client_id",
-        header: "N°",
-        enableColumnFilter: true,
+        accessorKey: "entree",
+        header: "Entree",
         enableEditing: false,
-        muiEditTextFieldProps: {
-          required: true,
-          error: !!validationErrors?.id,
-          helperText: validationErrors?.id,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              id: undefined,
-            }),
-          //optionally add validation checking for onBlur or onChange
-        },
-      },
-      {
-        accessorKey: "nom",
-        header: "Nom",
         muiEditTextFieldProps: {
           required: true,
           error: !!validationErrors?.nom,
           helperText: validationErrors?.nom,
-          //remove any previous validation errors when user focuses on the input
           onFocus: () =>
             setValidationErrors({
               ...validationErrors,
               nom: undefined,
             }),
-          //optionally add validation checking for onBlur or onChange
         },
       },
 
       {
-        accessorKey: "prenom",
-        header: "Prenom",
-
-        muiEditTextFieldProps: {
-          required: true,
-          error: !!validationErrors?.prenom,
-          helperText: validationErrors?.prenom,
-
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              prenom: undefined,
-            }),
-        },
-      },
-      {
-        accessorKey: "cin",
-        header: "cin",
-        muiEditTextFieldProps: {
-          type: "cin",
-          required: true,
-          error: !!validationErrors?.cin,
-          helperText: validationErrors?.cin,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              cin: undefined,
-            }),
-        },
-      },
-      {
-        accessorKey: "prix_total",
-        header: "prix_total",
-        muiEditTextFieldProps: {
-          type: "prix_total",
-          required: true,
-          error: !!validationErrors?.prix_total,
-          helperText: validationErrors?.prix_total,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              prix_total: undefined,
-            }),
-        },
-      },
-      {
-        accessorKey: "prix_restant",
-        header: "prix_restant",
+        accessorKey: "sortie",
+        header: "Sortie",
         enableEditing: false,
         Cell: ({ cell }) => {
           const [getClientId, setGetClientId] = useState(null);
@@ -166,11 +129,17 @@ const Table = ({ initialData }) => {
                 <FaHistory />
               </button>
               {
-                <PaymentHistory
-                  clientId={getClientId}
-                  open={open}
+                // <PaymentHistory
+                //   clientId={getClientId}
+                //   open={open}
+                //   close={handleClose}
+                //   prix_total={cell.row.original.prix_total}
+                // />
+
+                <Sortie
                   close={handleClose}
-                  prix_total={cell.row.original.prix_total}
+                  open={open}
+                  user_id={cell.row.original.user_id}
                 />
               }
               {cell.getValue()}
@@ -178,7 +147,7 @@ const Table = ({ initialData }) => {
           );
         },
         muiEditTextFieldProps: {
-          type: "prix_restant",
+          type: "int",
           required: true,
           error: !!validationErrors?.prix_restant,
           helperText: validationErrors?.prix_restant,
@@ -190,38 +159,53 @@ const Table = ({ initialData }) => {
             }),
         },
       },
+
       {
-        accessorKey: "date_exam",
-        header: "date_exam",
+        accessorKey: "date",
+        header: "date",
         muiEditTextFieldProps: {
-          type: "date",
           required: true,
-          error: !!validationErrors?.date_exam,
-          helperText: validationErrors?.date_exam,
-          //remove any previous validation errors when user focuses on the input
+          error: !!validationErrors?.prenom,
+          helperText: validationErrors?.prenom,
           onFocus: () =>
             setValidationErrors({
               ...validationErrors,
-              date_exam: undefined,
+              prenom: undefined,
             }),
         },
       },
-      {
-        accessorKey: "num_tel",
-        header: "num_tel",
-        muiEditTextFieldProps: {
-          type: "num_tel",
-          required: true,
-          error: !!validationErrors?.num_tel,
-          helperText: validationErrors?.num_tel,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              num_tel: undefined,
-            }),
-        },
-      },
+      //   {
+      //     accessorKey: "date_exam",
+      //     header: "date_exam",
+      //     muiEditTextFieldProps: {
+      //       type: "date",
+      //       required: true,
+      //       error: !!validationErrors?.date_exam,
+      //       helperText: validationErrors?.date_exam,
+      //       //remove any previous validation errors when user focuses on the input
+      //       onFocus: () =>
+      //         setValidationErrors({
+      //           ...validationErrors,
+      //           date_exam: undefined,
+      //         }),
+      //     },
+      //   },
+      //   {
+      //     accessorKey: "num_tel",
+      //     header: "num_tel",
+      //     muiEditTextFieldProps: {
+      //       type: "num_tel",
+      //       required: true,
+      //       error: !!validationErrors?.num_tel,
+      //       helperText: validationErrors?.num_tel,
+      //       //remove any previous validation errors when user focuses on the input
+      //       onFocus: () =>
+      //         setValidationErrors({
+      //           ...validationErrors,
+      //           num_tel: undefined,
+      //         }),
+      //     },
+      //   },
     ],
     [validationErrors]
   );
@@ -258,36 +242,6 @@ const Table = ({ initialData }) => {
     } catch (error) {
       console.error("Error:", error);
     }
-  };
-
-  //DELETE action
-  const openDeleteConfirmModal = async (row) => {
-    // const client_id = row.original.client_id;
-    // try {
-    //   const response = await fetch(
-    //     `http://localhost:3000/api/client/${client_id}`,
-    //     {
-    //       method: "DELETE", // Specify the POST method
-    //       headers: {
-    //         "Content-Type": "application/json", // Set the Content-Type header if needed
-    //         Authorization: `Bearer ${await getToken()}`,
-    //       },
-    //     }
-    //   );
-    //   if (!response.ok) {
-    //     throw new Error("Failed to fetch data");
-    //   }
-    //   // If you expect a response, you can handle it here
-    //   const okResponse = await response.json();
-    //   toast.success("client deleted avec success!");
-    //   table.setEditingRow(null); //exit editing mode
-    //   const updatedData = await getData(await getToken());
-    //   setData(sortedData(updatedData));
-    //   return okResponse;
-    // } catch (error) {
-    //   toast.error("une erreur est survenu");
-    //   console.error("Error:", error);
-    // }
   };
 
   const table = useMaterialReactTable({
@@ -375,7 +329,7 @@ const Table = ({ initialData }) => {
   return <MaterialReactTable table={table} />;
 };
 
-const TableWithProviders = ({ data }) => {
+const FinanciereTableWithProviders = ({ data }) => {
   return (
     //Put this with your other react-query providers near root of your app
 
@@ -383,7 +337,7 @@ const TableWithProviders = ({ data }) => {
   );
 };
 
-export default TableWithProviders;
+export default FinanciereTableWithProviders;
 
 const validateRequired = (value) => !!value.length;
 const validateEmail = (email) =>

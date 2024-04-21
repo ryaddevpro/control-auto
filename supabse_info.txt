@@ -65,3 +65,33 @@ create table
     constraint user_email_key unique (email),
     constraint user_user_id_key unique (user_id)
   ) tablespace pg_default;
+
+
+
+create table
+  gestion_financiere (
+    id SERIAL primary key,
+    user_id varchar not null references "user" (user_id),
+    date DATE not null,
+    entree decimal(10, 2),
+    sortie decimal(10, 2) not null,
+    description text,
+    created_at timestamp default current_timestamp,
+    updated_at timestamp default current_timestamp
+  );
+ 
+
+ CREATE TABLE public.sortie (
+    id SERIAL PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    description TEXT,
+    amount DECIMAL(10, 2) NOT NULL,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_user
+    FOREIGN KEY (user_id)
+    REFERENCES public.user (user_id)
+    ON DELETE CASCADE
+);
