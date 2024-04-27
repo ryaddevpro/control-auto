@@ -20,7 +20,7 @@ const addPayment = async (token = null, clientId, amount) => {
     }
 
     const response = await fetch(
-      `http://localhost:3000/api/payment/${clientId}`,
+      `https://control-auto.vercel.app/api/payment/${clientId}`,
       {
         method: "POST",
         headers: headers,
@@ -56,7 +56,7 @@ export const getData = async (token = null, clientId) => {
     }
 
     const response = await fetch(
-      `http://localhost:3000/api/payment/${clientId}`,
+      `https://control-auto.vercel.app/api/payment/${clientId}`,
       {
         method: "GET",
         headers: headers,

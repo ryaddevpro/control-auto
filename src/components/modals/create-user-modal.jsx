@@ -18,7 +18,7 @@ const CreateUserModal = () => {
 
   const onSubmit = async (data) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/client/`, {
+      const response = await fetch(`https://control-auto.vercel.app/api/client/`, {
         method: "POST", // Specify the POST method
         headers: {
           "Content-Type": "application/json", // Set the Content-Type header if needed

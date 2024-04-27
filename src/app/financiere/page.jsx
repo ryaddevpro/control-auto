@@ -22,7 +22,7 @@ export const getData = async (token = null) => {
     }
 
     const response = await fetch(
-      "http://localhost:3000/api/gestion_financiere",
+      "https://control-auto.vercel.app/api/gestion_financiere",
       {
         method: "GET",
         headers: headers,

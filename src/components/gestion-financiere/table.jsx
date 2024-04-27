@@ -216,7 +216,7 @@ const Table = ({ initialData }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/client/${client_id}`,
+        `https://control-auto.vercel.app/api/client/${client_id}`,
         {
           method: "PUT", // Specify the POST method
           headers: {

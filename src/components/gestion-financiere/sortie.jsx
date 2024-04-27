@@ -20,7 +20,7 @@ const addSortie = async (token = null, user_id, dataSortie) => {
     }
 
     const response = await fetch(
-      `http://localhost:3000/api/gestion_financiere/${user_id}`,
+      `https://control-auto.vercel.app/api/gestion_financiere/${user_id}`,
       {
         method: "POST",
         headers: headers,
@@ -56,7 +56,7 @@ export const getData = async (token = null, userId) => {
     }
 
     const response = await fetch(
-      `http://localhost:3000/api/gestion_financiere/${userId}`,
+      `https://control-auto.vercel.app/api/gestion_financiere/${userId}`,
       {
         method: "GET",
         headers: headers,
