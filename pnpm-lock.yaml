@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@clerk/localizations':
+    specifier: ^2.3.0
+    version: 2.3.0
   '@clerk/nextjs':
     specifier: ^4.29.9
     version: 4.29.9(next@14.1.1)(react-dom@18.2.0)(react@18.2.0)
@@ -188,6 +191,11 @@ packages:
       tslib: 2.4.1
     transitivePeerDependencies:
       - react
+    dev: false
+
+  /@clerk/localizations@2.3.0:
+    resolution: {integrity: sha512-Xc+O/Bw8kT0W4/4xWl4fPwulysFv1YURksxeTxnoo9/hBC2h2irhQ955VNKwUv+s7qkHda4ujdLzjqBU+FOIhw==}
+    engines: {node: '>=18.17.0'}
     dev: false
 
   /@clerk/nextjs@4.29.9(next@14.1.1)(react-dom@18.2.0)(react@18.2.0):

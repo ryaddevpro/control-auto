@@ -20,7 +20,7 @@ const addPayment = async (token = null, clientId, amount) => {
     }
 
     const response = await fetch(
-      `https://control-auto.vercel.app/api/payment/${clientId}`,
+      `${process.env.NEXT_PUBLIC_URL}/api/payment/${clientId}`,
       {
         method: "POST",
         headers: headers,

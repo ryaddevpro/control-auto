@@ -18,15 +18,18 @@ const CreateUserModal = () => {
 
   const onSubmit = async (data) => {
     try {
-      const response = await fetch(`https://control-auto.vercel.app/api/client/`, {
-        method: "POST", // Specify the POST method
-        headers: {
-          "Content-Type": "application/json", // Set the Content-Type header if needed
-          Authorization: `Bearer ${await getToken()}`,
-        },
-        // Add body if you want to send data along with the POST request
-        body: JSON.stringify(data),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_URL}/api/client/`,
+        {
+          method: "POST", // Specify the POST method
+          headers: {
+            "Content-Type": "application/json", // Set the Content-Type header if needed
+            Authorization: `Bearer ${await getToken()}`,
+          },
+          // Add body if you want to send data along with the POST request
+          body: JSON.stringify(data),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch data");
@@ -75,7 +78,7 @@ const CreateUserModal = () => {
       type: "number",
       required: false,
     },
-    { id: "date_exam", label: "Date of Exam", type: "date", required: false },
+    { id: "date_exam", label: "Date de l'Exam", type: "date", required: false },
   ];
 
   return (
@@ -99,10 +102,7 @@ const CreateUserModal = () => {
             </button>
             <div className="mx-auto max-w-4xl space-y-8 px-4">
               <div className="space-y-2">
-                <h1 className="text-3xl font-bold">Join the Club</h1>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Enter your information to sign up
-                </p>
+                <h1 className="text-3xl font-bold">Ajouter Client</h1>
               </div>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

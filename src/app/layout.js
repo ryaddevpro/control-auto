@@ -4,6 +4,7 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "@/components/layout/navbar";
 import { CounterStoreProvider } from "@/providers/counter-store-provider";
+import { frFR } from "@clerk/localizations";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,7 +15,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <ClerkProvider afterSignInUrl="/" afterSignUpUrl="/">
+    <ClerkProvider afterSignInUrl="/" afterSignUpUrl="/" localization={frFR}>
       <html lang="fr">
         <body className="bg-center bg-cover bg-no-repeat bg-fixed">
           <Navbar />

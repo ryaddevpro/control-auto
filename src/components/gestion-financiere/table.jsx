@@ -56,41 +56,6 @@ const Table = ({ initialData }) => {
 
   const columns = useMemo(
     () => [
-      // {
-      //   accessorKey: "id",
-      //   header: "N°",
-      //   enableColumnFilter: true,
-      //   enableEditing: false,
-      //   muiEditTextFieldProps: {
-      //     required: true,
-      //     error: !!validationErrors?.id,
-      //     helperText: validationErrors?.id,
-      //     //remove any previous validation errors when user focuses on the input
-      //     onFocus: () =>
-      //       setValidationErrors({
-      //         ...validationErrors,
-      //         id: undefined,
-      //       }),
-      //     //optionally add validation checking for onBlur or onChange
-      //   },
-      // },
-      // {
-      //   accessorKey: "description",
-      //   header: "description",
-      //   enableEditing: false,
-      //   muiEditTextFieldProps: {
-      //     type: "string",
-      //     required: true,
-      //     error: !!validationErrors?.cin,
-      //     helperText: validationErrors?.cin,
-      //     //remove any previous validation errors when user focuses on the input
-      //     onFocus: () =>
-      //       setValidationErrors({
-      //         ...validationErrors,
-      //         cin: undefined,
-      //       }),
-      //   },
-      // },
       {
         accessorKey: "entree",
         header: "Entree",
@@ -174,38 +139,6 @@ const Table = ({ initialData }) => {
             }),
         },
       },
-      //   {
-      //     accessorKey: "date_exam",
-      //     header: "date_exam",
-      //     muiEditTextFieldProps: {
-      //       type: "date",
-      //       required: true,
-      //       error: !!validationErrors?.date_exam,
-      //       helperText: validationErrors?.date_exam,
-      //       //remove any previous validation errors when user focuses on the input
-      //       onFocus: () =>
-      //         setValidationErrors({
-      //           ...validationErrors,
-      //           date_exam: undefined,
-      //         }),
-      //     },
-      //   },
-      //   {
-      //     accessorKey: "num_tel",
-      //     header: "num_tel",
-      //     muiEditTextFieldProps: {
-      //       type: "num_tel",
-      //       required: true,
-      //       error: !!validationErrors?.num_tel,
-      //       helperText: validationErrors?.num_tel,
-      //       //remove any previous validation errors when user focuses on the input
-      //       onFocus: () =>
-      //         setValidationErrors({
-      //           ...validationErrors,
-      //           num_tel: undefined,
-      //         }),
-      //     },
-      //   },
     ],
     [validationErrors]
   );
@@ -216,7 +149,7 @@ const Table = ({ initialData }) => {
 
     try {
       const response = await fetch(
-        `https://control-auto.vercel.app/api/client/${client_id}`,
+        `${process.env.NEXT_PUBLIC_URL}/api/client/${client_id}`,
         {
           method: "PUT", // Specify the POST method
           headers: {
@@ -250,6 +183,14 @@ const Table = ({ initialData }) => {
     createDisplayMode: "row", // ('modal', and 'custom' are also available)
     editDisplayMode: "row", // ('modal', 'cell', 'table', and 'custom' are also available)
     enableEditing: true,
+    localization: {
+      noRecordsToDisplay: "Aucun client enregistré",
+      showHideSearch: "Recherche",
+      showHideFilters: "Filters",
+      showHideColumns: "Afficher/Masquer colonnes",
+      toggleFullScreen: "Plein écran",
+      toggleDensity: "Zoomer / Dézoomer",
+    },
 
     getRowId: (row) => row.id,
     onCreatingRowCancel: () => setValidationErrors({}),
@@ -262,54 +203,28 @@ const Table = ({ initialData }) => {
           gap: "16px",
           padding: "8px",
           flexWrap: "wrap",
+          width: "200px",
         }}
       >
         <Button
           //export all data that is currently in the table (ignore pagination, sorting, filtering, etc.)
           onClick={handleExportData}
-          startIcon={<FileDownloadIcon />}
+          startIcon={<FileDownloadIcon sx={{ width: "18px" }} />} // Adjust the icon size here
+          sx={{ fontSize: "12px", lineHeight: "1.4" }}
         >
-          Export All Data
-        </Button>
-        <Button
-          disabled={table.getPrePaginationRowModel().rows.length === 0}
-          //export all rows, including from the next page, (still respects filtering and sorting)
-          onClick={() =>
-            handleExportRows(table.getPrePaginationRowModel().rows)
-          }
-          startIcon={<FileDownloadIcon />}
-        >
-          Export All Rows
-        </Button>
-        <Button
-          disabled={table.getRowModel().rows.length === 0}
-          //export all rows as seen on the screen (respects pagination, sorting, filtering, etc.)
-          onClick={() => handleExportRows(table.getRowModel().rows)}
-          startIcon={<FileDownloadIcon />}
-        >
-          Export Page Rows
-        </Button>
-        <Button
-          disabled={
-            !table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()
-          }
-          //only export selected rows
-          onClick={() => handleExportRows(table.getSelectedRowModel().rows)}
-          startIcon={<FileDownloadIcon />}
-        >
-          Export Selected Rows
+          Enregistrer les données clients{" "}
         </Button>
       </Box>
     ),
 
     renderRowActions: ({ row, table }) => (
       <Box sx={{ display: "flex", gap: "1rem" }}>
-        <Tooltip title="Edit">
+        <Tooltip title="Modifier">
           <IconButton onClick={() => table.setEditingRow(row)}>
             <EditIcon />
           </IconButton>
         </Tooltip>
-        <Tooltip title="Delete">
+        <Tooltip title="Supprimer">
           <IconButton
             color="error"
             onClick={() => {

@@ -63,7 +63,9 @@ const Navbar = () => {
                     <UserButton
                       userProfileUrl="/user-profile"
                       userProfileMode="navigation"
-                    />
+                    >
+                      {/* Customize the text here */}
+                    </UserButton>
                   </SignedIn>
                   <SignedOut>
                     <div>

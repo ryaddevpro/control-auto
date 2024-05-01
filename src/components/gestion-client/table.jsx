@@ -5,7 +5,13 @@ import {
   // createRow,
   useMaterialReactTable,
 } from "material-react-table";
-import { Box, Button, IconButton, Tooltip } from "@mui/material";
+import {
+  Box,
+  Button,
+  IconButton,
+  InputAdornment,
+  Tooltip,
+} from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { mkConfig, generateCsv, download } from "export-to-csv"; //or use your library of choice here
@@ -17,6 +23,7 @@ import { getData, sortedData } from "@/app/page";
 import PaymentHistory from "../payment-history";
 import toast from "react-hot-toast";
 import ConfirmDeleteDialog from "../modals/confirm-delete-modal";
+import { IoSearchCircleOutline } from "react-icons/io5";
 
 const csvConfig = mkConfig({
   fieldSeparator: ",",
@@ -232,7 +239,7 @@ const Table = ({ initialData }) => {
 
     try {
       const response = await fetch(
-        `https://control-auto.vercel.app/api/client/${client_id}`,
+        `${process.env.NEXT_PUBLIC_URL}/api/client/${client_id}`,
         {
           method: "PUT", // Specify the POST method
           headers: {
@@ -261,41 +268,29 @@ const Table = ({ initialData }) => {
   };
 
   //DELETE action
-  const openDeleteConfirmModal = async (row) => {
-    // const client_id = row.original.client_id;
-    // try {
-    //   const response = await fetch(
-    //     `https://control-auto.vercel.app/api/client/${client_id}`,
-    //     {
-    //       method: "DELETE", // Specify the POST method
-    //       headers: {
-    //         "Content-Type": "application/json", // Set the Content-Type header if needed
-    //         Authorization: `Bearer ${await getToken()}`,
-    //       },
-    //     }
-    //   );
-    //   if (!response.ok) {
-    //     throw new Error("Failed to fetch data");
-    //   }
-    //   // If you expect a response, you can handle it here
-    //   const okResponse = await response.json();
-    //   toast.success("client deleted avec success!");
-    //   table.setEditingRow(null); //exit editing mode
-    //   const updatedData = await getData(await getToken());
-    //   setData(sortedData(updatedData));
-    //   return okResponse;
-    // } catch (error) {
-    //   toast.error("une erreur est survenu");
-    //   console.error("Error:", error);
-    // }
-  };
+  const openDeleteConfirmModal = async (row) => {};
 
   const table = useMaterialReactTable({
+    muiSearchTextFieldProps: {
+      placeholder: "Recherche",
+      sx: { minWidth: "300px" },
+      title: "recherche",
+      variant: "outlined",
+    },
+
     columns,
     data,
     createDisplayMode: "row", // ('modal', and 'custom' are also available)
     editDisplayMode: "row", // ('modal', 'cell', 'table', and 'custom' are also available)
     enableEditing: true,
+    localization: {
+      noRecordsToDisplay: "Aucun client enregistré",
+      showHideSearch: "Recherche",
+      showHideFilters: "Filters",
+      showHideColumns: "Afficher/Masquer colonnes",
+      toggleFullScreen: "Plein écran",
+      toggleDensity: "Zoomer / Dézoomer",
+    },
 
     getRowId: (row) => row.id,
     onCreatingRowCancel: () => setValidationErrors({}),
@@ -308,16 +303,18 @@ const Table = ({ initialData }) => {
           gap: "16px",
           padding: "8px",
           flexWrap: "wrap",
+          width: "200px",
         }}
       >
         <Button
           //export all data that is currently in the table (ignore pagination, sorting, filtering, etc.)
           onClick={handleExportData}
-          startIcon={<FileDownloadIcon />}
+          startIcon={<FileDownloadIcon sx={{ width: "18px" }} />} // Adjust the icon size here
+          sx={{ fontSize: "12px", lineHeight: "1.4" }}
         >
-          Export All Data
+          Enregistrer les données clients{" "}
         </Button>
-        <Button
+        {/* <Button
           disabled={table.getPrePaginationRowModel().rows.length === 0}
           //export all rows, including from the next page, (still respects filtering and sorting)
           onClick={() =>
@@ -344,18 +341,18 @@ const Table = ({ initialData }) => {
           startIcon={<FileDownloadIcon />}
         >
           Export Selected Rows
-        </Button>
+        </Button> */}
       </Box>
     ),
 
     renderRowActions: ({ row, table }) => (
       <Box sx={{ display: "flex", gap: "1rem" }}>
-        <Tooltip title="Edit">
+        <Tooltip title="Modifier">
           <IconButton onClick={() => table.setEditingRow(row)}>
             <EditIcon />
           </IconButton>
         </Tooltip>
-        <Tooltip title="Delete">
+        <Tooltip title="Supprimer">
           <IconButton
             color="error"
             onClick={() => {

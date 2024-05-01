@@ -6,7 +6,7 @@ const confirmDelete = async (row, token) => {
   const client_id = row.original.client_id;
   try {
     const response = await fetch(
-      `https://control-auto.vercel.app/api/client/${client_id}`,
+      `${process.env.NEXT_PUBLIC_URL}/api/client/${client_id}`,
       {
         method: "DELETE", // Specify the POST method
         headers: {

@@ -22,3 +22,8 @@ html {
   height: 100%;
   width: 100%; /* h-screen equivalent */
 }
+
+.cl-userButtonPopoverFooter,
+.cl-internal-uyu30o {
+  display: none;
+}

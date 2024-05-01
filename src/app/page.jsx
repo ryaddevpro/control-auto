@@ -21,7 +21,7 @@ export const getData = async (token = null) => {
       headers.Authorization = `Bearer ${authToken}`;
     }
 
-    const response = await fetch("https://control-auto.vercel.app/api/client", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/client`, {
       method: "GET",
       headers: headers,
       cache: "no-store",

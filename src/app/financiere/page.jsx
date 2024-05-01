@@ -22,7 +22,7 @@ export const getData = async (token = null) => {
     }
 
     const response = await fetch(
-      "https://control-auto.vercel.app/api/gestion_financiere",
+      `${process.env.NEXT_PUBLIC_URL}/api/gestion_financiere`,
       {
         method: "GET",
         headers: headers,
@@ -42,20 +42,7 @@ export const getData = async (token = null) => {
 };
 
 export default async function Home() {
-  const data = await getData();
-
-  const sortedData = data.slice().sort((a, b) => {
-    const dateA = a.updated_at ? new Date(a.updated_at) : null;
-    const dateB = b.updated_at ? new Date(b.updated_at) : null;
-
-    // Handle null values
-    if (!dateA && !dateB) return 0;
-    if (!dateA) return 1;
-    if (!dateB) return -1;
-
-    // Compare the dates
-    return dateB - dateA;
-  });
+  const data = (await getData()) || [];
 
   return (
     <React.Fragment>
@@ -68,7 +55,7 @@ export default async function Home() {
 
       <div className="m-6">
         <div className="flex justify-end w-full my-2">
-          <CreateUserModal />
+          {/* <CreateUserModal /> */}
         </div>
         <FinanciereTableWithProviders data={data} />
       </div>
