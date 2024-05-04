@@ -56,7 +56,7 @@ export const getData = async (token = null, clientId) => {
     }
 
     const response = await fetch(
-      `https://control-auto.vercel.app/api/payment/${clientId}`,
+      `${process.env.NEXT_PUBLIC_URL}api/payment/${clientId}`,
       {
         method: "GET",
         headers: headers,
@@ -118,7 +118,7 @@ const PaymentHistory = ({ clientId, open, close, prix_total }) => {
     p: 2,
     borderRadius: 2, // Adding borderRadius to make it rounded
   };
-    
+
   const fetchData = useMemo(
     () => async () => {
       try {

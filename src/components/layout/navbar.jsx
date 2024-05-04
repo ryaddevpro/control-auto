@@ -17,7 +17,7 @@ const Navbar = () => {
 
   const navItems = [
     { label: "Gestion Client", href: "/" },
-    { label: "Gestion Financiere", href: "financiere" },
+    { label: "Gestion Financiere", href: "/financiere" },
   ];
   return (
     <React.Fragment>
