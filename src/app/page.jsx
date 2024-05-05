@@ -55,7 +55,7 @@ export const sortedData = (data) => {
 };
 
 export default async function Home() {
-  const data = await getData();
+  const data = (await getData()) || [];
 
   const sortedData = data.slice().sort((a, b) => {
     // Convert the date strings to Date objects for comparison

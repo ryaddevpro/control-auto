@@ -7,10 +7,13 @@ export async function POST(request) {
     const body = await request.json();
     const { email, user_id } = body;
 
+    console.log(body);
+
     const { data, error } = await supabase.from("user").insert({
       email,
       user_id,
     });
+    console.log(error);
 
     if (error) {
       throw new Error("Failed to insert data");

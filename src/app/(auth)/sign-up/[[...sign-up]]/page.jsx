@@ -29,7 +29,7 @@ const createUser = async (token, user_id, email) => {
     }
 
     const data = await response.json();
-    return data?.clients;
+    return data?.data;
   } catch (error) {
     console.error("Error:", error);
   }
@@ -88,6 +88,8 @@ const RegisterPage = () => {
         setActive({ session: completeSignUp.createdSessionId })
           .then(async () => await getToken())
           .then((token) => {
+            console.log("----------------------token---------------------");
+            console.log(token);
             return createUser(
               token,
               completeSignUp.createdUserId,
