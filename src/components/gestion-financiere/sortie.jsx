@@ -151,44 +151,45 @@ const Sortie = ({ user_id, open, close, prix_total }) => {
             <IoClose />
           </IconButton>
         </Box>
-        <h2 className="text-lg ">Sortie</h2>
+        <h2 className="text-lg font-semibold font-sans">Sortie</h2>
+        <p className="text-md text-sm text-gray-600 tracking-wide">Un champ pour enregistrer les dépenses quotidiennes, afin de calculer ultérieurement le bénéfice</p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="py-4 ">
-          <div className="flex justify-center gap-x-4">
-            <div className="flex gap-4 justify-end ">
-              <div>
-                <label className="input flex-grow input-bordered flex items-center gap-2">
+        <form onSubmit={handleSubmit(onSubmit)} className="py-4 flex flex-col gap-3 ">
+          <div className="flex justify-center gap-x-4 w-full">
+            <div className="flex gap-4 justify-end w-full">
+              <div className="w-full">
+                <label className="flex-grow w-full input-bordered flex items-center gap-2">
                   <input
                     type="text"
-                    className="grow"
-                    placeholder="combien il va payer aujourd'hui ?"
+                    className="input input-bordered w-full text-sm "
+                    placeholder="Description de la sortie example: essence, assurance, impot,..."
                     {...register("description", {})}
                   />
                 </label>
                 <p className="text-red-500">
-                  {errors?.description && <span>This field is required</span>}
+                  {errors?.description && <span>Ce champ est obligatoire</span>}
                 </p>
               </div>
             </div>
-            <div className="flex gap-4 justify-end ">
-              <div>
-                <label className="input flex-grow input-bordered flex items-center gap-2">
+            <div className="flex gap-4 justify-end w-full">
+              <div className="w-full"> 
+                <label className="flex-grow flex items-center gap-2 w-full">
                   <input
-                    type="text"
-                    className="grow"
-                    placeholder="combien il va payer aujourd'hui ?"
+                    type="number"
+                    className="grow input-bordered input w-full text-xs "
+                    placeholder="Le montant de vos dépenses ? (400, 500)"
                     {...register("amount", { required: true })}
                   />
                 </label>
                 <p className="text-red-500">
-                  {errors?.amount && <span>This field is required</span>}
+                  {errors?.amount && <span>Ce champ est obligatoire</span>}
                 </p>
               </div>
-              <button className="btn btn-secondary" type="submit">
-                ajouter
-              </button>
             </div>
           </div>
+          <button className="btn self-end btn-secondary" type="submit">
+            ajouter
+          </button>
         </form>
 
         <div className="overflow-x-auto bg-white">

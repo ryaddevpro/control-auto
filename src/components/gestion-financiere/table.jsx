@@ -58,7 +58,7 @@ const Table = ({ initialData }) => {
     () => [
       {
         accessorKey: "entree",
-        header: "Entree",
+        header: "Entrée",
         enableEditing: false,
         muiEditTextFieldProps: {
           required: true,

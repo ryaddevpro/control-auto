@@ -30,6 +30,7 @@ export async function DELETE(request, { params }) {
       .eq("client_id", clientId);
 
     if (error) {
+      console.log(error)
       throw new Error("Failed to delete data");
     }
 

@@ -128,38 +128,38 @@ const Table = ({ initialData }) => {
             }),
         },
       },
-      {
-        accessorKey: "cin",
-        header: "cin",
-        muiEditTextFieldProps: {
-          type: "cin",
-          required: true,
-          error: !!validationErrors?.cin,
-          helperText: validationErrors?.cin,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              cin: undefined,
-            }),
-        },
-      },
-      {
-        accessorKey: "prix_total",
-        header: "Paiement total",
-        muiEditTextFieldProps: {
-          type: "prix_total",
-          required: true,
-          error: !!validationErrors?.prix_total,
-          helperText: validationErrors?.prix_total,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              prix_total: undefined,
-            }),
-        },
-      },
+    //   {
+    //     accessorKey: "cin",
+    //     header: "cin",
+    //     muiEditTextFieldProps: {
+    //       type: "cin",
+    //       required: true,
+    //       error: !!validationErrors?.cin,
+    //       helperText: validationErrors?.cin,
+    //       //remove any previous validation errors when user focuses on the input
+    //       onFocus: () =>
+    //         setValidationErrors({
+    //           ...validationErrors,
+    //           cin: undefined,
+    //         }),
+    //     },
+    //   },
+    //   {
+    //     accessorKey: "prix_total",
+    //     header: "Paiement total",
+    //     muiEditTextFieldProps: {
+    //       type: "prix_total",
+    //       required: true,
+    //       error: !!validationErrors?.prix_total,
+    //       helperText: validationErrors?.prix_total,
+    //       //remove any previous validation errors when user focuses on the input
+    //       onFocus: () =>
+    //         setValidationErrors({
+    //           ...validationErrors,
+    //           prix_total: undefined,
+    //         }),
+    //     },
+    //   },
       {
         accessorKey: "prix_restant",
         header: "Paiement restant",
@@ -206,22 +206,22 @@ const Table = ({ initialData }) => {
             }),
         },
       },
-      {
-        accessorKey: "date_exam",
-        header: "date_exam",
-        muiEditTextFieldProps: {
-          type: "date",
-          required: true,
-          error: !!validationErrors?.date_exam,
-          helperText: validationErrors?.date_exam,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              date_exam: undefined,
-            }),
-        },
-      },
+    //   {
+    //     accessorKey: "date_exam",
+    //     header: "date_exam",
+    //     muiEditTextFieldProps: {
+    //       type: "date",
+    //       required: true,
+    //       error: !!validationErrors?.date_exam,
+    //       helperText: validationErrors?.date_exam,
+    //       //remove any previous validation errors when user focuses on the input
+    //       onFocus: () =>
+    //         setValidationErrors({
+    //           ...validationErrors,
+    //           date_exam: undefined,
+    //         }),
+    //     },
+    //   },
       {
         accessorKey: "num_tel",
         header: "numéro de téléphone",
@@ -392,7 +392,7 @@ const Table = ({ initialData }) => {
   );
 };
 
-const ClientTableWithProviders = ({ data }) => {
+const PaimentRestantTableWithProviders = ({ data }) => {
   const theme = useTheme(); //replace with your theme/createTheme
 
   return (
@@ -403,7 +403,7 @@ const ClientTableWithProviders = ({ data }) => {
   );
 };
 
-export default ClientTableWithProviders;
+export default PaimentRestantTableWithProviders;
 
 const validateRequired = (value) => !!value.length;
 const validateEmail = (email) =>

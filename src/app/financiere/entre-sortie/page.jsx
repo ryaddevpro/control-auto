@@ -49,7 +49,7 @@ export default async function Home() {
       <Toaster position="top-right" reverseOrder={false} />
       <header className="my-12">
         <h1 className="text-4xl text-center font-semibold font-serif">
-          Entre / Sortie
+        Entrée / Sortie
         </h1>
       </header>
 

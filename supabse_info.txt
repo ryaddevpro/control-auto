@@ -76,6 +76,7 @@ create table
     entree decimal(10, 2),
     sortie decimal(10, 2) not null,
     description text,
+    entreAvecDelete decimal(10, 2),
     created_at timestamp default current_timestamp,
     updated_at timestamp default current_timestamp
   );
@@ -95,3 +96,54 @@ create table
     REFERENCES public.user (user_id)
     ON DELETE CASCADE
 );
+
+
+CREATE OR REPLACE FUNCTION public.handle_client_soft_deletion()
+  RETURNS trigger AS
+$BODY$
+DECLARE
+  total_paid NUMERIC;
+BEGIN
+  -- Check if "isDeleted" is being set to true
+  IF NEW."isDeleted" AND NOT OLD."isDeleted" THEN
+    -- Calculate the total amount paid by the client
+    SELECT COALESCE(SUM(amount), 0)
+    INTO total_paid
+    FROM paymenthistory
+    WHERE client_id = OLD.client_id;
+
+    -- Check if a row exists for today's date and the given user_id
+    IF EXISTS (
+      SELECT 1 FROM gestion_financiere
+      WHERE user_id = OLD.user_id AND date = CURRENT_DATE
+    ) THEN
+      -- Update the existing row for today with the total payments made by the client being marked as deleted
+      UPDATE gestion_financiere
+      SET entreAvecDelete = total_paid
+      WHERE user_id = OLD.user_id AND date = CURRENT_DATE;
+    ELSE
+      -- Insert a new row if no entry exists for today
+      INSERT INTO gestion_financiere (user_id, date, entree, sortie, description, entreAvecDelete)
+      VALUES (
+        OLD.user_id,
+        CURRENT_DATE,
+        0,  -- No new entry since it's a soft deletion
+        0,  -- No sortie for this operation
+        'Total payments recorded upon client soft deletion',
+        total_paid
+      );
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$BODY$
+LANGUAGE 'plpgsql' VOLATILE
+COST 100;
+DROP TRIGGER IF EXISTS before_client_soft_deletion ON client;
+
+CREATE TRIGGER before_client_soft_deletion
+  BEFORE UPDATE OF "isDeleted" ON client
+  FOR EACH ROW
+  WHEN (NEW."isDeleted" IS TRUE)
+  EXECUTE FUNCTION public.handle_client_soft_deletion();

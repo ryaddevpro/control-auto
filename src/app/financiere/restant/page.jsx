@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs";
 import React from "react";
 import { Toaster } from "react-hot-toast";
 import ClientTableWithProviders from "@/components/gestion-client/table";
+import PaimentRestantTableWithProviders from "@/components/paiment_restant/table";
 
 export const revalidate = 0;
 
@@ -59,7 +60,7 @@ export default async function Home() {
         <div className="flex justify-end w-full my-2">
           {/* <CreateUserModal /> */}
         </div>
-        <ClientTableWithProviders data={data} />
+        <PaimentRestantTableWithProviders data={data} />
       </div>
     </React.Fragment>
   );
