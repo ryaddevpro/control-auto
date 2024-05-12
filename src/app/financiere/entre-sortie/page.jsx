@@ -43,6 +43,11 @@ export const getData = async (token = null) => {
 
 export default async function Home() {
   const data = (await getData()) || [];
+  const newData = data.map(item => ({
+    ...item,
+    benefice: item.entree - item.sortie
+  }));
+  
 
   return (
     <React.Fragment>
@@ -57,7 +62,7 @@ export default async function Home() {
         <div className="flex justify-end w-full my-2">
           {/* <CreateUserModal /> */}
         </div>
-        <FinanciereTableWithProviders data={data} />
+        <FinanciereTableWithProviders data={newData} />
       </div>
     </React.Fragment>
   );

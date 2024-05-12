@@ -113,7 +113,7 @@ const Table = ({ initialData }) => {
 
       {
         accessorKey: "prenom",
-        header: "Prenom",
+        header: "Prénom",
 
         muiEditTextFieldProps: {
           required: true,
@@ -130,7 +130,7 @@ const Table = ({ initialData }) => {
       },
       {
         accessorKey: "cin",
-        header: "cin",
+        header: "CIN",
         muiEditTextFieldProps: {
           type: "cin",
           required: true,

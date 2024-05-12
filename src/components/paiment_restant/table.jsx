@@ -113,7 +113,7 @@ const Table = ({ initialData }) => {
 
       {
         accessorKey: "prenom",
-        header: "Prenom",
+        header: "Prénom",
 
         muiEditTextFieldProps: {
           required: true,

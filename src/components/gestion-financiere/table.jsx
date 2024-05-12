@@ -59,7 +59,7 @@ const Table = ({ initialData }) => {
       {
         accessorKey: "entree",
         header: "Entrée",
-        enableEditing: false,
+        // enableEditing: false,
         muiEditTextFieldProps: {
           required: true,
           error: !!validationErrors?.nom,
@@ -94,13 +94,6 @@ const Table = ({ initialData }) => {
                 <FaHistory />
               </button>
               {
-                // <PaymentHistory
-                //   clientId={getClientId}
-                //   open={open}
-                //   close={handleClose}
-                //   prix_total={cell.row.original.prix_total}
-                // />
-
                 <Sortie
                   close={handleClose}
                   open={open}
@@ -122,6 +115,32 @@ const Table = ({ initialData }) => {
               ...validationErrors,
               prix_restant: undefined,
             }),
+        },
+      },
+
+      {
+        accessorKey: "benefice",
+        header: "Bénéfice",
+        enableEditing: false,
+        muiEditTextFieldProps: {
+          required: true,
+          error: !!validationErrors?.nom,
+          helperText: validationErrors?.nom,
+          onFocus: () =>
+            setValidationErrors({
+              ...validationErrors,
+              nom: undefined,
+            }),
+        },
+        Cell: ({ cell }) => {
+          return (
+            <Box
+              component="span"
+              className={`flex gap-2 items-center ${+cell.getValue() > 0? "text-green-500": "text-red-500"} `}
+            >
+              {cell.getValue()}
+            </Box>
+          );
         },
       },
 
@@ -266,7 +285,7 @@ const validateEmail = (email) =>
 function validateUser(user) {
   return {
     nom: !validateRequired(user.nom) ? "Nom is Required" : "",
-    prenom: !validateRequired(user.prenom) ? "Prenom is Required" : "",
+    prenom: !validateRequired(user.prenom) ? "Prénom is Required" : "",
     email: !validateEmail(user.email) ? "Incorrect Email Format" : "",
   };
 }
