@@ -47,7 +47,7 @@ const ConfirmDeleteDialog = ({ rowClient, token }) => {
       <div className="modal-box">
         <h3 className="font-bold text-lg">Hello!</h3>
         <p className="py-4">
-          Voulez-vous vraiment supprimer {rowClient?.original?.nom}{" "}
+          Voulez-vous vraiment supprimer le client {rowClient?.original?.nom}{" "}
         </p>
         <div className="modal-action">
           <form method="dialog">

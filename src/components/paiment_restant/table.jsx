@@ -24,7 +24,6 @@ import { mkConfig, generateCsv, download } from "export-to-csv"; //or use your l
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import Link from "next/link";
 import { FaHistory } from "react-icons/fa";
-import { auth, useAuth } from "@clerk/nextjs";
 import { getData, sortedData } from "@/app/page";
 import PaymentHistory from "../payment-history";
 import toast from "react-hot-toast";
@@ -42,14 +41,11 @@ const Table = ({ initialData }) => {
   const [confirmModal, setConfirmModal] = useState(false);
   const [token, setToken] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
-  const { getToken, isLoaded, isSignedIn } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setData(initialData); // Update data when initialData changes
-        const token = await getToken();
-        setToken(token);
       } catch (error) {
         console.error("Error fetching data:", error);
         // Handle error state here, for example:
@@ -128,38 +124,38 @@ const Table = ({ initialData }) => {
             }),
         },
       },
-    //   {
-    //     accessorKey: "cin",
-    //     header: "cin",
-    //     muiEditTextFieldProps: {
-    //       type: "cin",
-    //       required: true,
-    //       error: !!validationErrors?.cin,
-    //       helperText: validationErrors?.cin,
-    //       //remove any previous validation errors when user focuses on the input
-    //       onFocus: () =>
-    //         setValidationErrors({
-    //           ...validationErrors,
-    //           cin: undefined,
-    //         }),
-    //     },
-    //   },
-    //   {
-    //     accessorKey: "prix_total",
-    //     header: "Paiement total",
-    //     muiEditTextFieldProps: {
-    //       type: "prix_total",
-    //       required: true,
-    //       error: !!validationErrors?.prix_total,
-    //       helperText: validationErrors?.prix_total,
-    //       //remove any previous validation errors when user focuses on the input
-    //       onFocus: () =>
-    //         setValidationErrors({
-    //           ...validationErrors,
-    //           prix_total: undefined,
-    //         }),
-    //     },
-    //   },
+      //   {
+      //     accessorKey: "cin",
+      //     header: "cin",
+      //     muiEditTextFieldProps: {
+      //       type: "cin",
+      //       required: true,
+      //       error: !!validationErrors?.cin,
+      //       helperText: validationErrors?.cin,
+      //       //remove any previous validation errors when user focuses on the input
+      //       onFocus: () =>
+      //         setValidationErrors({
+      //           ...validationErrors,
+      //           cin: undefined,
+      //         }),
+      //     },
+      //   },
+      //   {
+      //     accessorKey: "prix_total",
+      //     header: "Paiement total",
+      //     muiEditTextFieldProps: {
+      //       type: "prix_total",
+      //       required: true,
+      //       error: !!validationErrors?.prix_total,
+      //       helperText: validationErrors?.prix_total,
+      //       //remove any previous validation errors when user focuses on the input
+      //       onFocus: () =>
+      //         setValidationErrors({
+      //           ...validationErrors,
+      //           prix_total: undefined,
+      //         }),
+      //     },
+      //   },
       {
         accessorKey: "prix_restant",
         header: "Paiement restant",
@@ -206,22 +202,22 @@ const Table = ({ initialData }) => {
             }),
         },
       },
-    //   {
-    //     accessorKey: "date_exam",
-    //     header: "date_exam",
-    //     muiEditTextFieldProps: {
-    //       type: "date",
-    //       required: true,
-    //       error: !!validationErrors?.date_exam,
-    //       helperText: validationErrors?.date_exam,
-    //       //remove any previous validation errors when user focuses on the input
-    //       onFocus: () =>
-    //         setValidationErrors({
-    //           ...validationErrors,
-    //           date_exam: undefined,
-    //         }),
-    //     },
-    //   },
+      //   {
+      //     accessorKey: "date_exam",
+      //     header: "date_exam",
+      //     muiEditTextFieldProps: {
+      //       type: "date",
+      //       required: true,
+      //       error: !!validationErrors?.date_exam,
+      //       helperText: validationErrors?.date_exam,
+      //       //remove any previous validation errors when user focuses on the input
+      //       onFocus: () =>
+      //         setValidationErrors({
+      //           ...validationErrors,
+      //           date_exam: undefined,
+      //         }),
+      //     },
+      //   },
       {
         accessorKey: "num_tel",
         header: "numéro de téléphone",
@@ -253,7 +249,6 @@ const Table = ({ initialData }) => {
           method: "PUT", // Specify the POST method
           headers: {
             "Content-Type": "application/json", // Set the Content-Type header if needed
-            Authorization: `Bearer ${await getToken()}`,
           },
           // Add body if you want to send data along with the POST request
           body: JSON.stringify(values),
@@ -302,12 +297,12 @@ const Table = ({ initialData }) => {
       save: "Enregistrer",
       cancel: "Annuler",
       sortedByColumnAsc: "Trier par ordre croissant selon {column}",
-      sortByColumnDesc: "Trier par ordre décroissant selon {column}" ,
+      sortByColumnDesc: "Trier par ordre décroissant selon {column}",
       sortByColumnAsc: "Trier par ordre croissant selon {column}",
       sortedByColumnDesc: "Trier par ordre décroissant selon {column}",
-      clearSort:"Effacer le tri",
-      filterByColumn:"Filter par {column}",
-      clearFilter:"Effacer le Filter"
+      clearSort: "Effacer le tri",
+      filterByColumn: "Filter par {column}",
+      clearFilter: "Effacer le Filter",
     },
 
     getRowId: (row) => row.id,

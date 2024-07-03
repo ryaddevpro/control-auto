@@ -1,5 +1,4 @@
 "use client";
-import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -13,7 +12,6 @@ const CreateUserModal = () => {
     reset,
     formState: { errors },
   } = useForm();
-  const { getToken, isLoaded, isSignedIn } = useAuth();
   const router = useRouter();
 
   const onSubmit = async (data) => {
@@ -24,7 +22,6 @@ const CreateUserModal = () => {
           method: "POST", // Specify the POST method
           headers: {
             "Content-Type": "application/json", // Set the Content-Type header if needed
-            Authorization: `Bearer ${await getToken()}`,
           },
           // Add body if you want to send data along with the POST request
           body: JSON.stringify(data),

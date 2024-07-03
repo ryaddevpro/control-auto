@@ -24,7 +24,6 @@ import { mkConfig, generateCsv, download } from "export-to-csv"; //or use your l
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import Link from "next/link";
 import { FaHistory } from "react-icons/fa";
-import { auth, useAuth } from "@clerk/nextjs";
 import { getData, sortedData } from "@/app/page";
 import PaymentHistory from "../payment-history";
 import toast from "react-hot-toast";
@@ -42,14 +41,11 @@ const Table = ({ initialData }) => {
   const [confirmModal, setConfirmModal] = useState(false);
   const [token, setToken] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
-  const { getToken, isLoaded, isSignedIn } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setData(initialData); // Update data when initialData changes
-        const token = await getToken();
-        setToken(token);
       } catch (error) {
         console.error("Error fetching data:", error);
         // Handle error state here, for example:
@@ -58,7 +54,7 @@ const Table = ({ initialData }) => {
     };
 
     fetchData();
-  }, [initialData, getToken]);
+  }, [initialData]);
 
   const handleExportRows = (rows) => {
     const rowData = rows.map((row) => row.original);
@@ -253,7 +249,6 @@ const Table = ({ initialData }) => {
           method: "PUT", // Specify the POST method
           headers: {
             "Content-Type": "application/json", // Set the Content-Type header if needed
-            Authorization: `Bearer ${await getToken()}`,
           },
           // Add body if you want to send data along with the POST request
           body: JSON.stringify(values),
@@ -267,7 +262,6 @@ const Table = ({ initialData }) => {
       // If you expect a response, you can handle it here
       const okResponse = await response.json();
       table.setEditingRow(null); //exit editing mode
-      const updatedData = await getData(await getToken());
       setData(sortedData(updatedData));
 
       return okResponse;
@@ -302,12 +296,12 @@ const Table = ({ initialData }) => {
       save: "Enregistrer",
       cancel: "Annuler",
       sortedByColumnAsc: "Trier par ordre croissant selon {column}",
-      sortByColumnDesc: "Trier par ordre décroissant selon {column}" ,
+      sortByColumnDesc: "Trier par ordre décroissant selon {column}",
       sortByColumnAsc: "Trier par ordre croissant selon {column}",
       sortedByColumnDesc: "Trier par ordre décroissant selon {column}",
-      clearSort:"Effacer le tri",
-      filterByColumn:"Filter par {column}",
-      clearFilter:"Effacer le Filter"
+      clearSort: "Effacer le tri",
+      filterByColumn: "Filter par {column}",
+      clearFilter: "Effacer le Filter",
     },
 
     getRowId: (row) => row.id,

@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs";
 import React from "react";
 import { Toaster } from "react-hot-toast";
 import ClientTableWithProviders from "@/components/gestion-client/table";
@@ -6,20 +5,11 @@ import CreateUserModal from "@/components/modals/create-user-modal";
 
 export const revalidate = 0;
 
-export const getData = async (token = null) => {
+export const getData = async () => {
   try {
     const headers = {
       "Content-Type": "application/json",
     };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    } else {
-      const { userId, getToken } = auth();
-
-      const authToken = await getToken();
-      headers.Authorization = `Bearer ${authToken}`;
-    }
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/client`, {
       method: "GET",

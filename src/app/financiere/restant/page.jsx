@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs";
 import React from "react";
 import { Toaster } from "react-hot-toast";
 import ClientTableWithProviders from "@/components/gestion-client/table";
@@ -15,10 +14,6 @@ export const getData = async (token = null) => {
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     } else {
-      const { getToken } = auth();
-
-      const authToken = await getToken();
-      headers.Authorization = `Bearer ${authToken}`;
     }
 
     const response = await fetch(

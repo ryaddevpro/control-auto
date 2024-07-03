@@ -1,4 +1,3 @@
-import { auth, useAuth } from "@clerk/nextjs";
 import { Box, IconButton, Modal } from "@mui/material";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
@@ -6,18 +5,11 @@ import { useForm } from "react-hook-form";
 import { IoClose } from "react-icons/io5";
 import toast from "react-hot-toast";
 
-const addSortie = async (token = null, user_id, dataSortie) => {
+const addSortie = async (user_id, dataSortie) => {
   try {
     const headers = {
       "Content-Type": "application/json",
     };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    } else {
-      const authToken = await getToken();
-      headers.Authorization = `Bearer ${authToken}`;
-    }
 
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_URL}/api/gestion_financiere/${user_id}`,
@@ -42,21 +34,14 @@ const addSortie = async (token = null, user_id, dataSortie) => {
   }
 };
 
-export const getData = async (token = null, userId) => {
+export const getData = async (id) => {
   try {
     const headers = {
       "Content-Type": "application/json",
     };
 
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    } else {
-      const authToken = await getToken();
-      headers.Authorization = `Bearer ${authToken}`;
-    }
-
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_URL}/api/gestion_financiere/${userId}`,
+      `${process.env.NEXT_PUBLIC_URL}/api/gestion_financiere/${id}`,
       {
         method: "GET",
         headers: headers,
@@ -69,7 +54,8 @@ export const getData = async (token = null, userId) => {
     }
 
     const data = await response.json();
-    return data?.sortie;
+
+    return data;
   } catch (error) {
     console.error("Error:", error);
   }
@@ -84,7 +70,6 @@ function formatDate(dateString) {
 }
 
 const Sortie = ({ user_id, open, close, prix_total }) => {
-  const { getToken } = useAuth();
   const [data, setData] = useState([]);
   const {
     register,
@@ -97,7 +82,7 @@ const Sortie = ({ user_id, open, close, prix_total }) => {
 
   const onSubmit = async (data) => {
     try {
-      await addSortie(await getToken(), user_id, data);
+      await addSortie(user_id, data);
       reset(); // Reset the form
       fetchData(); // Refetch the data
       router.refresh();
@@ -118,24 +103,28 @@ const Sortie = ({ user_id, open, close, prix_total }) => {
     p: 2,
     borderRadius: 2, // Adding borderRadius to make it rounded
   };
-
+  function formatDateSortie(dateString) {
+    const date = new Date(dateString);
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
   const fetchData = useMemo(
     () => async () => {
       try {
-        const clientPayments = await getData(await getToken(), user_id);
+        const clientPayments = await getData(user_id);
         setData(clientPayments);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     },
-    [user_id, getToken]
+    []
   );
 
   useEffect(() => {
-    if (user_id) {
-      fetchData();
-    }
-  }, [user_id, fetchData]);
+    fetchData();
+  }, [fetchData]);
 
   return (
     <Modal
@@ -152,9 +141,16 @@ const Sortie = ({ user_id, open, close, prix_total }) => {
           </IconButton>
         </Box>
         <h2 className="text-lg font-semibold font-sans">Sortie</h2>
-        <p className="text-md text-sm text-gray-600 tracking-wide">Un champ pour enregistrer les dépenses quotidiennes, afin de calculer ultérieurement le bénéfice</p>
+        {user_id}
+        <p className="text-md text-sm text-gray-600 tracking-wide">
+          Un champ pour enregistrer les dépenses quotidiennes, afin de calculer
+          ultérieurement le bénéfice
+        </p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="py-4 flex flex-col gap-3 ">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="py-4 flex flex-col gap-3 "
+        >
           <div className="flex justify-center gap-x-4 w-full">
             <div className="flex gap-4 justify-end w-full">
               <div className="w-full">
@@ -172,7 +168,7 @@ const Sortie = ({ user_id, open, close, prix_total }) => {
               </div>
             </div>
             <div className="flex gap-4 justify-end w-full">
-              <div className="w-full"> 
+              <div className="w-full">
                 <label className="flex-grow flex items-center gap-2 w-full">
                   <input
                     type="number"
@@ -204,12 +200,12 @@ const Sortie = ({ user_id, open, close, prix_total }) => {
               </tr>
             </thead>
             <tbody>
-              {data.map((x, index) => {
+              {data?.map((x, index) => {
                 return (
                   <tr key={index} className="bg-base-200">
                     <td>{formatDate(x?.created_at)}</td>
                     <td>{x?.description}</td>
-                    <td>{x?.amount}DH</td>
+                    <td>{+x?.amount}DH</td>
                   </tr>
                 );
               })}

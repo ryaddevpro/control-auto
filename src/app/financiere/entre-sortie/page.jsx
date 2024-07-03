@@ -1,8 +1,6 @@
-import { auth } from "@clerk/nextjs";
 import React from "react";
 import { Toaster } from "react-hot-toast";
 import FinanciereTableWithProviders from "@/components/gestion-financiere/table";
-import CreateUserModal from "@/components/modals/create-user-modal";
 
 export const revalidate = 0;
 
@@ -12,14 +10,7 @@ export const getData = async (token = null) => {
       "Content-Type": "application/json",
     };
 
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    } else {
-      const { getToken } = auth();
-
-      const authToken = await getToken();
-      headers.Authorization = `Bearer ${authToken}`;
-    }
+    
 
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_URL}/api/gestion_financiere`,

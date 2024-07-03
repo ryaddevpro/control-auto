@@ -1,4 +1,3 @@
-import { auth, useAuth } from "@clerk/nextjs";
 import { Box, IconButton, Modal } from "@mui/material";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
@@ -6,18 +5,11 @@ import { useForm } from "react-hook-form";
 import { IoClose } from "react-icons/io5";
 import toast from "react-hot-toast";
 
-const addPayment = async (token = null, clientId, amount) => {
+const addPayment = async (clientId, amount) => {
   try {
     const headers = {
       "Content-Type": "application/json",
     };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    } else {
-      const authToken = await getToken();
-      headers.Authorization = `Bearer ${authToken}`;
-    }
 
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_URL}/api/payment/${clientId}`,
@@ -42,18 +34,11 @@ const addPayment = async (token = null, clientId, amount) => {
   }
 };
 
-export const getData = async (token = null, clientId) => {
+export const getData = async (clientId) => {
   try {
     const headers = {
       "Content-Type": "application/json",
     };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    } else {
-      const authToken = await getToken();
-      headers.Authorization = `Bearer ${authToken}`;
-    }
 
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_URL}api/payment/${clientId}`,
@@ -84,7 +69,6 @@ function formatDate(dateString) {
 }
 
 const PaymentHistory = ({ clientId, open, close, prix_total }) => {
-  const { getToken } = useAuth();
   const [data, setData] = useState([]);
   const {
     register,
@@ -97,7 +81,7 @@ const PaymentHistory = ({ clientId, open, close, prix_total }) => {
 
   const onSubmit = async (data) => {
     try {
-      await addPayment(await getToken(), clientId, data);
+      await addPayment(clientId, data);
       reset(); // Reset the form
       fetchData(); // Refetch the data
       router.refresh();
@@ -122,16 +106,17 @@ const PaymentHistory = ({ clientId, open, close, prix_total }) => {
   const fetchData = useMemo(
     () => async () => {
       try {
-        const clientPayments = await getData(await getToken(), clientId);
+        const clientPayments = await getData(clientId);
         setData(clientPayments);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     },
-    [clientId, getToken]
+    [clientId]
   );
 
   useEffect(() => {
+    console.log(data);
     if (clientId) {
       fetchData();
     }
@@ -201,10 +186,10 @@ const PaymentHistory = ({ clientId, open, close, prix_total }) => {
           </table>
         </div>
         <h1>
-          prix restant:{" "}
+          prix restant:
           {+prix_total -
             data.reduce((total, payment) => {
-              return total + payment.amount;
+              return +total + +payment.amount;
             }, 0)}
         </h1>
       </Box>

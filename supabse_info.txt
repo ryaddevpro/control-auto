@@ -1,33 +1,6 @@
-get all triggers of my database 
- 
-for client table here is the trigger name:
- -client_created_at_trigger
- -handle_updated_at
-
-for paymenthistory table the trigger name:
- -after_insert_payment
-
- 
-SELECT tgname AS table_name,
-       tgrelid::regclass AS table_name,
-       pg_get_triggerdef(oid) AS trigger_definition
-FROM pg_trigger;
-
-
-
-**get single trigger
-  SELECT pg_get_triggerdef(t.oid) AS trigger_definition
-  FROM pg_trigger t
-  JOIN pg_class c ON t.tgrelid = c.oid
-  WHERE t.tgname = 'after_insert_payment';
-
-i think this is the query that allow me to generate all tables
--- Supabase AI is experimental and may produce incorrect answers
--- Always verify the output before executing
-
 create table
   public.client (
-    client_id bigint primary key generated always as identity,
+    client_id serial,
     nom character varying(100) null,
     prenom character varying(100) null,
     cin character varying(20) null,
@@ -41,12 +14,32 @@ create table
     created_at timestamp with time zone null,
     "isDeleted" boolean null default false,
     constraint client_pkey1 primary key (client_id),
-    constraint client_user_id_fkey foreign key (user_id) references "user" (user_id)
+    constraint client_user_id_fkey foreign key (user_id) references "user" (user_id),
+    constraint positive_prix_restant check ((prix_restant >= (0)::numeric))
   ) tablespace pg_default;
 
+
+
 create table
+  public.gestion_financiere (
+    id serial,
+    user_id character varying not null,
+    date date not null,
+    entree numeric(10, 2) null,
+    sortie numeric(10, 2) not null default 0,
+    description text null,
+    created_at timestamp without time zone null default current_timestamp,
+    updated_at timestamp without time zone null default current_timestamp,
+    benefice numeric(10, 2) null,
+    entreavecdelete numeric null,
+    constraint gestion_financiere_pkey primary key (id),
+    constraint gestion_financiere_user_id_fkey foreign key (user_id) references "user" (user_id)
+  ) tablespace pg_default;
+
+
+  create table
   public.paymenthistory (
-    payment_id bigint primary key generated always as identity,
+    payment_id serial,
     client_id integer not null,
     payment_date timestamp without time zone null default current_timestamp,
     amount numeric(10, 2) null,
@@ -56,9 +49,26 @@ create table
     constraint paymenthistory_user_id_fkey foreign key (user_id) references "user" (user_id)
   ) tablespace pg_default;
 
+
+
+create table
+  public.sortie (
+    id serial,
+    user_id character varying(255) not null,
+    description text null,
+    amount numeric(10, 2) not null,
+    date date not null default current_date,
+    created_at timestamp with time zone null default current_timestamp,
+    updated_at timestamp with time zone null default current_timestamp,
+    constraint sortie_pkey primary key (id),
+    constraint fk_user foreign key (user_id) references "user" (user_id) on delete cascade
+  ) tablespace pg_default;
+
+
+
 create table
   public.user (
-    id bigint primary key generated always as identity,
+    id serial,
     user_id character varying(255) not null,
     email character varying(255) not null,
     constraint user_pkey primary key (id),
@@ -67,83 +77,566 @@ create table
   ) tablespace pg_default;
 
 
+create trigger client_insert_trigger
+after insert on client for each row
+execute function insert_payment_history ();
 
-create table
-  gestion_financiere (
-    id SERIAL primary key,
-    user_id varchar not null references "user" (user_id),
-    date DATE not null,
-    entree decimal(10, 2),
-    sortie decimal(10, 2) not null,
-    description text,
-    entreAvecDelete decimal(10, 2),
-    created_at timestamp default current_timestamp,
-    updated_at timestamp default current_timestamp
-  );
- 
+create trigger after_client_deletion
+after delete on client for each row
+execute function handle_client_deletion ();
 
- CREATE TABLE public.sortie (
-    id SERIAL PRIMARY KEY,
-    user_id VARCHAR(255) NOT NULL,
-    description TEXT,
-    amount DECIMAL(10, 2) NOT NULL,
-    date DATE NOT NULL DEFAULT CURRENT_DATE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+create trigger client_created_at_trigger before insert on client for each row
+execute function add_created_at ();
 
-    CONSTRAINT fk_user
-    FOREIGN KEY (user_id)
-    REFERENCES public.user (user_id)
-    ON DELETE CASCADE
+create trigger before_client_soft_deletion before
+update of "isDeleted" on client for each row when (new."isDeleted" is true)
+execute function handle_client_soft_deletion ();
+
+create trigger handle_updated_at before
+update on client for each row
+execute function moddatetime ('updated_at');
+
+create trigger after_insert_payment
+after insert on paymenthistory for each row
+execute function update_remaining_price ();
+
+create trigger after_payment_update
+after insert
+or
+update on paymenthistory for each row
+execute function update_gestion_financiere ();
+
+create trigger after_sortie_update
+after insert
+or
+update on sortie for each row
+execute function update_gestion_financiere_sortie (); 
+
+
+create trigger user_insert_trigger
+after insert on "user" for each row
+execute function insert_payment_history ();
+
+
+-----------------------------from supabase to MySQL---------------------------------
+
+
+CREATE TABLE `client` (
+    `client_id` INT AUTO_INCREMENT PRIMARY KEY,
+    `nom` VARCHAR(100) NULL,
+    `prenom` VARCHAR(100) NULL,
+    `cin` VARCHAR(20) NULL,
+    `num_tel` VARCHAR(20) NULL,
+    `date_exam` DATE NULL,
+    `prix_restant` DECIMAL(10, 2) NULL CHECK (prix_restant >= 0),
+    `prix_total` DECIMAL(10, 2) NULL,
+    `prix_paye` DECIMAL(10, 2) NULL,
+    `user_id` VARCHAR(255) NOT NULL,
+    `updated_at` TIMESTAMP NULL,
+    `created_at` TIMESTAMP NULL,
+    `isDeleted` BOOLEAN NULL DEFAULT FALSE,
+    FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`)
+);
+
+DELIMITER //
+CREATE TRIGGER client_insert_trigger
+AFTER INSERT ON `client`
+FOR EACH ROW
+BEGIN
+    CALL insert_payment_history();
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER after_client_deletion
+AFTER DELETE ON `client`
+FOR EACH ROW
+BEGIN
+    CALL handle_client_deletion();
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER client_created_at_trigger
+BEFORE INSERT ON `client`
+FOR EACH ROW
+BEGIN
+    CALL add_created_at();
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER before_client_soft_deletion
+BEFORE UPDATE OF `isDeleted` ON `client`
+FOR EACH ROW
+BEGIN
+    IF NEW.`isDeleted` = TRUE THEN
+        CALL handle_client_soft_deletion();
+    END IF;
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER handle_updated_at
+BEFORE UPDATE ON `client`
+FOR EACH ROW
+BEGIN
+    CALL moddatetime('updated_at');
+END //
+DELIMITER ;
+
+CREATE TABLE `gestion_financiere` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` VARCHAR(255) NOT NULL,
+    `date` DATE NOT NULL,
+    `entree` DECIMAL(10, 2) NULL,
+    `sortie` DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    `description` TEXT NULL,
+    `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    `benefice` DECIMAL(10, 2) NULL,
+    `entreavecdelete` DECIMAL(10, 2) NULL,
+    FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`)
+);
+
+CREATE TABLE `paymenthistory` (
+    `payment_id` INT AUTO_INCREMENT PRIMARY KEY,
+    `client_id` INT NOT NULL,
+    `payment_date` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    `amount` DECIMAL(10, 2) NULL,
+    `user_id` VARCHAR(255) NULL,
+    FOREIGN KEY (`client_id`) REFERENCES `client`(`client_id`),
+    FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`)
+);
+
+DELIMITER //
+CREATE TRIGGER after_insert_payment
+AFTER INSERT ON `paymenthistory`
+FOR EACH ROW
+BEGIN
+    CALL update_remaining_price();
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER after_payment_update
+AFTER INSERT OR UPDATE ON `paymenthistory`
+FOR EACH ROW
+BEGIN
+    CALL update_gestion_financiere();
+END //
+DELIMITER ;
+
+CREATE TABLE `sortie` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` VARCHAR(255) NOT NULL,
+    `description` TEXT NULL,
+    `amount` DECIMAL(10, 2) NOT NULL,
+    `date` DATE NOT NULL DEFAULT CURRENT_DATE,
+    `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`) ON DELETE CASCADE
+);
+
+DELIMITER //
+CREATE TRIGGER after_sortie_update
+AFTER INSERT OR UPDATE ON `sortie`
+FOR EACH ROW
+BEGIN
+    CALL update_gestion_financiere_sortie();
+END //
+DELIMITER ;
+
+
+----------------------------------
+-- Client Table
+CREATE TABLE `client` (
+    `client_id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `nom` VARCHAR(100) NULL,
+    `prenom` VARCHAR(100) NULL,
+    `cin` VARCHAR(20) NULL,
+    `num_tel` VARCHAR(20) NULL,
+    `date_exam` DATE NULL,
+    `prix_restant` DECIMAL(10, 2) NULL CHECK (prix_restant >= 0),
+    `prix_total` DECIMAL(10, 2) NULL,
+    `prix_paye` DECIMAL(10, 2) NULL,
+    `updated_at` TIMESTAMP NULL,
+    `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    `isDeleted` BOOLEAN NULL DEFAULT FALSE
+);
+
+-- Gestion Financiere Table
+CREATE TABLE `gestion_financiere` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `date` DATE NOT NULL,
+    `entree` DECIMAL(10, 2) NULL,
+    `sortie` DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    `description` TEXT NULL,
+    `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `benefice` DECIMAL(10, 2) NULL,
+    `entreavecdelete` DECIMAL(10, 2) NULL
+);
+
+-- Payment History Table
+CREATE TABLE `paymenthistory` (
+    `payment_id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `client_id` BIGINT NOT NULL,
+    `payment_date` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    `amount` DECIMAL(10, 2) NULL,
+    FOREIGN KEY (`client_id`) REFERENCES `client`(`client_id`)
+);
+
+-- Sortie Table
+CREATE TABLE `sortie` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `description` TEXT NULL,
+    `amount` DECIMAL(10, 2) NOT NULL,
+    `date` DATE NOT NULL DEFAULT CURRENT_DATE,
+    `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 
-CREATE OR REPLACE FUNCTION public.handle_client_soft_deletion()
-  RETURNS trigger AS
-$BODY$
-DECLARE
-  total_paid NUMERIC;
+-- Triggers
+DELIMITER //
+
+-- Procédure pour insérer l'historique des paiements après l'insertion d'un client
+CREATE PROCEDURE insert_payment_history(p_client_id BIGINT, p_payment_date TIMESTAMP, p_amount DECIMAL(10, 2))
 BEGIN
-  -- Check if "isDeleted" is being set to true
-  IF NEW."isDeleted" AND NOT OLD."isDeleted" THEN
-    -- Calculate the total amount paid by the client
-    SELECT COALESCE(SUM(amount), 0)
-    INTO total_paid
-    FROM paymenthistory
-    WHERE client_id = OLD.client_id;
+    INSERT INTO paymenthistory (client_id, payment_date, amount)
+    VALUES (p_client_id, p_payment_date, p_amount);
+END //
 
-    -- Check if a row exists for today's date and the given user_id
-    IF EXISTS (
-      SELECT 1 FROM gestion_financiere
-      WHERE user_id = OLD.user_id AND date = CURRENT_DATE
-    ) THEN
-      -- Update the existing row for today with the total payments made by the client being marked as deleted
-      UPDATE gestion_financiere
-      SET entreAvecDelete = total_paid
-      WHERE user_id = OLD.user_id AND date = CURRENT_DATE;
-    ELSE
-      -- Insert a new row if no entry exists for today
-      INSERT INTO gestion_financiere (user_id, date, entree, sortie, description, entreAvecDelete)
-      VALUES (
-        OLD.user_id,
-        CURRENT_DATE,
-        0,  -- No new entry since it's a soft deletion
-        0,  -- No sortie for this operation
-        'Total payments recorded upon client soft deletion',
-        total_paid
-      );
-    END IF;
-  END IF;
+-- Procédure pour gérer la suppression d'un client
+CREATE PROCEDURE handle_client_deletion(p_client_id BIGINT)
+BEGIN
+    DELETE FROM gestion_financiere WHERE id IN (SELECT id FROM gestion_financiere WHERE client_id = p_client_id);
+END //
 
-  RETURN NEW;
-END;
-$BODY$
-LANGUAGE 'plpgsql' VOLATILE
-COST 100;
-DROP TRIGGER IF EXISTS before_client_soft_deletion ON client;
+-- Procédure pour gérer la suppression douce d'un client
+CREATE PROCEDURE handle_client_soft_deletion(p_client_id BIGINT)
+BEGIN
+    UPDATE client SET isDeleted = TRUE WHERE client_id = p_client_id;
+END //
+
+-- Procédure pour mettre à jour le prix restant après l'insertion d'un paiement
+CREATE PROCEDURE update_remaining_price(p_payment_id BIGINT)
+BEGIN
+    DECLARE v_client_id BIGINT;
+    DECLARE v_prix_total DECIMAL(10, 2);
+    DECLARE v_prix_paye DECIMAL(10, 2);
+
+    SELECT client_id INTO v_client_id FROM paymenthistory WHERE payment_id = p_payment_id;
+
+    SELECT prix_total, prix_paye INTO v_prix_total, v_prix_paye
+    FROM client
+    WHERE client_id = v_client_id;
+
+    UPDATE client
+    SET prix_restant = v_prix_total - v_prix_paye
+    WHERE client_id = v_client_id;
+END //
+
+-- Procédure pour mettre à jour la gestion financière après un paiement
+CREATE PROCEDURE update_gestion_financiere_payment(p_date DATE, p_entree DECIMAL(10, 2), p_description TEXT)
+BEGIN
+    INSERT INTO gestion_financiere (date, entree, sortie, description, created_at, updated_at, benefice, entreavecdelete)
+    VALUES (p_date, p_entree, 0, p_description, NOW(), NOW(), p_entree, p_entree);
+END //
+
+-- Procédure pour mettre à jour la gestion financière après une sortie
+CREATE PROCEDURE update_gestion_financiere_sortie(p_date DATE, p_sortie DECIMAL(10, 2), p_description TEXT)
+BEGIN
+    INSERT INTO gestion_financiere (date, entree, sortie, description, created_at, updated_at, benefice, entreavecdelete)
+    VALUES (p_date, 0, p_sortie, p_description, NOW(), NOW(), -p_sortie, -p_sortie);
+END //
+
+-- Procédure pour ajouter created_at avant l'insertion d'un client
+CREATE PROCEDURE add_created_at(p_client_id BIGINT)
+BEGIN
+    UPDATE client SET created_at = CURRENT_TIMESTAMP WHERE client_id = p_client_id;
+END //
+
+-- Procédure pour mettre à jour updated_at avant la mise à jour d'un client
+CREATE PROCEDURE moddatetime(p_client_id BIGINT)
+BEGIN
+    UPDATE client SET updated_at = CURRENT_TIMESTAMP WHERE client_id = p_client_id;
+END //
+
+DELIMITER ;
+
+	
+
+------------------------------optimized version---------------------------------
+
+-- User Table
+CREATE TABLE `user` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` VARCHAR(255) NOT NULL UNIQUE,
+    `email` VARCHAR(255) NOT NULL UNIQUE
+);
+
+-- Client Table
+CREATE TABLE `client` (
+    `client_id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `nom` VARCHAR(100) NULL,
+    `prenom` VARCHAR(100) NULL,
+    `cin` VARCHAR(20) NULL,
+    `num_tel` VARCHAR(20) NULL,
+    `date_exam` DATE NULL,
+    `prix_restant` DECIMAL(10, 2) NULL CHECK (`prix_restant` >= 0),
+    `prix_total` DECIMAL(10, 2) NULL,
+    `prix_paye` DECIMAL(10, 2) NULL,
+    `user_id` VARCHAR(255) NOT NULL,
+    `updated_at` DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `isDeleted` BOOLEAN NULL DEFAULT FALSE,
+    FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`)
+);
+
+-- Gestion Financiere Table
+CREATE TABLE `gestion_financiere` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` VARCHAR(255) NOT NULL,
+    `date` DATE NOT NULL,
+    `entree` DECIMAL(10, 2) NULL,
+    `sortie` DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    `description` TEXT NULL,
+    `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `benefice` DECIMAL(10, 2) NULL,
+    `entreavecdelete` DECIMAL(10, 2) NULL,
+    FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`)
+);
+
+-- Payment History Table
+CREATE TABLE `paymenthistory` (
+    `payment_id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `client_id` BIGINT NOT NULL,
+    `payment_date` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `amount` DECIMAL(10, 2) NULL,
+    `user_id` VARCHAR(255) NULL,
+    FOREIGN KEY (`client_id`) REFERENCES `client`(`client_id`),
+    FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`)
+);
+
+-- Sortie Table
+CREATE TABLE `sortie` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` VARCHAR(255) NOT NULL,
+    `description` TEXT NULL,
+    `amount` DECIMAL(10, 2) NOT NULL,
+    `date` DATE NOT NULL DEFAULT CURRENT_DATE,
+    `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`) ON DELETE CASCADE
+);
+
+-- Triggers
+DELIMITER //
+CREATE TRIGGER client_insert_trigger
+AFTER INSERT ON `client`
+FOR EACH ROW
+BEGIN
+    CALL insert_payment_history();
+END //
+
+CREATE TRIGGER after_client_deletion
+AFTER DELETE ON `client`
+FOR EACH ROW
+BEGIN
+    CALL handle_client_deletion();
+END //
+
+CREATE TRIGGER client_created_at_trigger
+BEFORE INSERT ON `client`
+FOR EACH ROW
+BEGIN
+    SET NEW.`created_at` = CURRENT_TIMESTAMP;
+END //
 
 CREATE TRIGGER before_client_soft_deletion
-  BEFORE UPDATE OF "isDeleted" ON client
-  FOR EACH ROW
-  WHEN (NEW."isDeleted" IS TRUE)
-  EXECUTE FUNCTION public.handle_client_soft_deletion();
+BEFORE UPDATE OF `isDeleted` ON `client`
+FOR EACH ROW
+BEGIN
+    IF NEW.`isDeleted` = TRUE THEN
+        CALL handle_client_soft_deletion();
+    END IF;
+END //
+
+CREATE TRIGGER handle_updated_at
+BEFORE UPDATE ON `client`
+FOR EACH ROW
+BEGIN
+    SET NEW.`updated_at` = CURRENT_TIMESTAMP;
+END //
+
+CREATE TRIGGER after_insert_payment
+AFTER INSERT ON `paymenthistory`
+FOR EACH ROW
+BEGIN
+    CALL update_remaining_price();
+END //
+
+CREATE TRIGGER after_payment_update
+AFTER INSERT OR UPDATE ON `paymenthistory`
+FOR EACH ROW
+BEGIN
+    CALL update_gestion_financiere();
+END //
+
+CREATE TRIGGER after_sortie_update
+AFTER INSERT OR UPDATE ON `sortie`
+FOR EACH ROW
+BEGIN
+    CALL update_gestion_financiere_sortie();
+END //
+
+CREATE TRIGGER user_insert_trigger
+AFTER INSERT ON `user`
+FOR EACH ROW
+BEGIN
+    CALL insert_payment_history();
+END //
+DELIMITER ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////// working procedures////////////////////////////////
+-- Drop existing triggers and procedures
+DROP TRIGGER IF EXISTS after_client_deletion;
+DROP TRIGGER IF EXISTS before_client_soft_deletion;
+DROP TRIGGER IF EXISTS client_created_at_trigger;
+DROP TRIGGER IF EXISTS client_insert_trigger;
+DROP TRIGGER IF EXISTS handle_updated_at;
+DROP TRIGGER IF EXISTS after_delete_payment;
+DROP TRIGGER IF EXISTS after_insert_payment;
+DROP TRIGGER IF EXISTS after_payment_update;
+DROP TRIGGER IF EXISTS after_update_payment;
+DROP TRIGGER IF EXISTS after_sortie_update_insert;
+DROP TRIGGER IF EXISTS after_sortie_update_update;
+
+DROP PROCEDURE IF EXISTS handle_client_deletion;
+DROP PROCEDURE IF EXISTS handle_client_soft_deletion;
+DROP PROCEDURE IF EXISTS insert_payment_history;
+DROP PROCEDURE IF EXISTS update_remaining_price;
+DROP PROCEDURE IF EXISTS update_gestion_financiere;
+DROP PROCEDURE IF EXISTS update_gestion_financiere_sortie;
+DROP PROCEDURE IF EXISTS periodic_update_remaining_price;
+
+DELIMITER $$
+
+-- Procedures
+CREATE PROCEDURE handle_client_deletion(IN old_client_id INT)
+BEGIN
+    DECLARE total_paid DECIMAL(10, 2);
+    SELECT SUM(amount) INTO total_paid FROM paymenthistory WHERE client_id = old_client_id;
+    -- Assuming gestion_financiere adjustments are handled elsewhere or manually
+END$$
+
+CREATE PROCEDURE handle_client_soft_deletion(IN old_client_id INT)
+BEGIN
+    DECLARE total_paid DECIMAL(10, 2);
+    SELECT COALESCE(SUM(amount), 0) INTO total_paid FROM paymenthistory WHERE client_id = old_client_id;
+    -- Assuming gestion_financiere adjustments are handled elsewhere or manually
+END$$
+
+CREATE PROCEDURE insert_payment_history(IN client_id INT, IN prix_paye DECIMAL(10, 2))
+BEGIN
+    INSERT INTO paymenthistory (client_id, payment_date, amount) VALUES (client_id, CURRENT_TIMESTAMP, prix_paye);
+END$$
+
+CREATE PROCEDURE periodic_update_remaining_price()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE cur_client_id INT;
+    DECLARE cursor_client CURSOR FOR SELECT client_id FROM client WHERE isDeleted = FALSE;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN cursor_client;
+    update_loop: LOOP
+        FETCH cursor_client INTO cur_client_id;
+        IF done THEN
+            LEAVE update_loop;
+        END IF;
+        CALL update_remaining_price(cur_client_id);
+    END LOOP;
+    CLOSE cursor_client;
+END$$
+
+CREATE PROCEDURE update_remaining_price(IN client_id INT)
+BEGIN
+    DECLARE total_paid DECIMAL(10, 2);
+    DECLARE client_total DECIMAL(10, 2);
+
+    SELECT SUM(amount) INTO total_paid FROM paymenthistory WHERE client_id = client_id;
+    SELECT prix_total INTO client_total FROM client WHERE client_id = client_id;
+
+    UPDATE client SET prix_restant = client_total - COALESCE(total_paid, 0) WHERE client_id = client_id;
+END$$
+
+-- Triggers
+CREATE TRIGGER after_client_deletion
+AFTER DELETE ON client
+FOR EACH ROW
+BEGIN
+    CALL handle_client_deletion(OLD.client_id);
+END$$
+
+CREATE TRIGGER before_client_soft_deletion
+BEFORE UPDATE ON client
+FOR EACH ROW
+BEGIN
+    IF NEW.isDeleted = TRUE THEN
+        CALL handle_client_soft_deletion(OLD.client_id);
+    END IF;
+END$$
+
+CREATE TRIGGER client_created_at_trigger
+BEFORE INSERT ON client
+FOR EACH ROW
+BEGIN
+    SET NEW.created_at = CURRENT_TIMESTAMP;
+END$$
+
+CREATE TRIGGER client_insert_trigger
+AFTER INSERT ON client
+FOR EACH ROW
+BEGIN
+    IF NEW.prix_paye IS NOT NULL THEN
+        CALL insert_payment_history(NEW.client_id, NEW.prix_paye);
+    END IF;
+END$$
+
+CREATE TRIGGER handle_updated_at
+BEFORE UPDATE ON client
+FOR EACH ROW
+BEGIN
+    SET NEW.updated_at = CURRENT_TIMESTAMP;
+END$$
+
+CREATE TRIGGER after_insert_payment
+AFTER INSERT ON paymenthistory
+FOR EACH ROW
+BEGIN
+    -- Update procedure removed to prevent nested trigger issues
+END$$
+
+DELIMITER ;

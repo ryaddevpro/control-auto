@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react"; // Import useEffect and useState
-import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -56,26 +55,6 @@ const Navbar = () => {
                   </li>
                 );
               })}
-
-              {isMounted && ( // Render components only after mounting
-                <li>
-                  <SignedIn>
-                    <UserButton
-                      userProfileUrl="/user-profile"
-                      userProfileMode="navigation"
-                    >
-                      {/* Customize the text here */}
-                    </UserButton>
-                  </SignedIn>
-                  <SignedOut>
-                    <div>
-                      <SignInButton redirectUrl="/">
-                        <FaRegUser className="h-5 w-5 hover:scale-105" />
-                      </SignInButton>
-                    </div>
-                  </SignedOut>
-                </li>
-              )}
             </ul>
           </div>
         </div>

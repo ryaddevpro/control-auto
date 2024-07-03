@@ -10,10 +10,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { mkConfig, generateCsv, download } from "export-to-csv";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import { FaHistory } from "react-icons/fa";
-import { auth, useAuth } from "@clerk/nextjs";
-import { getData, sortedData } from "@/app/page";
-import PaymentHistory from "../payment-history";
-import ConfirmDeleteDialog from "../modals/confirm-delete-modal";
+import { sortedData } from "@/app/page";
 import Sortie from "./sortie";
 
 const csvConfig = mkConfig({
@@ -24,24 +21,42 @@ const csvConfig = mkConfig({
 
 const Table = ({ initialData }) => {
   const [data, setData] = useState(initialData); // State to hold data
+  console.log(initialData);
   const [confirmModal, setConfirmModal] = useState(false);
-  const [token, setToken] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
-  const { getToken, isLoaded, isSignedIn } = useAuth();
+  const [deleteRecordId, setDeleteRecordId] = useState(null);
+  const handleDeleteRecord = async (deleteRecordId) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_URL}/api/gestion_financiere/${deleteRecordId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete record");
+      }
+
+      const updatedData = data.filter((record) => record.id !== deleteRecordId);
+      setData(updatedData);
+      setConfirmModal(false);
+    } catch (error) {
+      console.error("Error deleting record:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setData(initialData); // Update data when initialData changes
-        const token = await getToken();
-        setToken(token);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
 
     fetchData();
-  }, [initialData, getToken]);
+  }, [initialData]);
 
   const handleExportRows = (rows) => {
     const rowData = rows.map((row) => row.original);
@@ -97,7 +112,7 @@ const Table = ({ initialData }) => {
                 <Sortie
                   close={handleClose}
                   open={open}
-                  user_id={cell.row.original.user_id}
+                  user_id={cell.row.original.id}
                 />
               }
               {cell.getValue()}
@@ -136,7 +151,9 @@ const Table = ({ initialData }) => {
           return (
             <Box
               component="span"
-              className={`flex gap-2 items-center ${+cell.getValue() > 0? "text-green-500": "text-red-500"} `}
+              className={`flex gap-2 items-center ${
+                +cell.getValue() > 0 ? "text-green-500" : "text-red-500"
+              } `}
             >
               {cell.getValue()}
             </Box>
@@ -173,7 +190,6 @@ const Table = ({ initialData }) => {
           method: "PUT", // Specify the POST method
           headers: {
             "Content-Type": "application/json", // Set the Content-Type header if needed
-            Authorization: `Bearer ${await getToken()}`,
           },
           // Add body if you want to send data along with the POST request
           body: JSON.stringify(values),
@@ -187,7 +203,6 @@ const Table = ({ initialData }) => {
       // If you expect a response, you can handle it here
       const okResponse = await response.json();
       table.setEditingRow(null); //exit editing mode
-      const updatedData = await getData(await getToken());
       setData(sortedData(updatedData));
 
       return okResponse;
@@ -248,26 +263,52 @@ const Table = ({ initialData }) => {
             color="error"
             onClick={() => {
               setConfirmModal(true);
-              document.getElementById("my_modal_2")?.showModal();
-              openDeleteConfirmModal(row);
+              setDeleteRecordId(row.id);
+              document.getElementById("my_modal_3")?.showModal();
             }}
           >
             <DeleteIcon />
           </IconButton>
         </Tooltip>
-        {<ConfirmDeleteDialog rowClient={row} token={`${token}`} />}
+        <dialog id="my_modal_3" className="modal">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Hello!</h3>
+            <p className="py-4">
+              Voulez-vous vraiment supprimer la gestion financiere
+            </p>
+            <div className="modal-action">
+              <form method="dialog">
+                {/* if there is a button in form, it will close the modal */}
+                <button className="btn">Close</button>
+                <button
+                  className="btn btn-danger "
+                  onClick={() => {
+                    handleDeleteRecord(deleteRecordId);
+                  }}
+                >
+                  Supprimez
+                </button>
+              </form>
+            </div>
+          </div>
+        </dialog>
       </Box>
     ),
   });
 
-  return <MaterialReactTable table={table} />;
+  return (
+    <>
+      <MaterialReactTable table={table} />
+    </>
+  );
 };
 
 const FinanciereTableWithProviders = ({ data }) => {
   return (
     //Put this with your other react-query providers near root of your app
-
-    <Table initialData={data} />
+    <>
+      <Table initialData={data} />
+    </>
   );
 };
 

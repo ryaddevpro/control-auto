@@ -1,36 +1,41 @@
-import supabase from "../../../../supabase/connection";
+import connectToDatabase from "../../../../mysql/connection";
 
 export const dynamic = "force-dynamic"; // defaults to auto
 
 export async function GET(request, { params }) {
+  let connection;
   try {
-    const { clientId } = params;
-    const { data: notes, error } = await supabase
-      .from("client")
-      .select()
-      .eq("client_id", clientId);
-
-    if (error) {
-      throw new Error("Failed to fetch data");
+    connection = await connectToDatabase();
+    if (!connection) {
+      throw new Error("Failed to connect to the database");
     }
 
-    return Response.json({ notes });
+    const { clientId } = params;
+    const [rows] = await connection.execute('SELECT * FROM client WHERE client_id = ?', [clientId]);
+
+    return Response.json({ notes: rows });
   } catch (error) {
     console.error("Error fetching data:", error.message);
     return Response.error("Failed to fetch data", { status: 500 });
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
   }
 }
 
 export async function DELETE(request, { params }) {
+  let connection;
   try {
-    const { clientId } = params;
-    const { error } = await supabase
-      .from("client")
-      .update({ isDeleted: true })
-      .eq("client_id", clientId);
+    connection = await connectToDatabase();
+    if (!connection) {
+      throw new Error("Failed to connect to the database");
+    }
 
-    if (error) {
-      console.log(error)
+    const { clientId } = params;
+    const [result] = await connection.execute('UPDATE client SET isDeleted = true WHERE client_id = ?', [clientId]);
+
+    if (result.affectedRows === 0) {
       throw new Error("Failed to delete data");
     }
 
@@ -38,25 +43,39 @@ export async function DELETE(request, { params }) {
   } catch (error) {
     console.error("Error deleting data:", error.message);
     return Response.error("Failed to delete data", { status: 500 });
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
   }
 }
 
 export async function PUT(request, { params }) {
+  let connection;
   try {
+    connection = await connectToDatabase();
+    if (!connection) {
+      throw new Error("Failed to connect to the database");
+    }
+
     const { clientId } = params;
     const data = await request.json();
+    const updateQuery = 'UPDATE client SET ' + Object.keys(data).map(key => `${key} = ?`).join(', ') + ' WHERE client_id = ?';
+    const values = [...Object.values(data), clientId];
+    
+    const [result] = await connection.execute(updateQuery, values);
 
-    const { error } = await supabase
-      .from("client")
-      .update(data)
-      .eq("client_id", clientId);
-    if (error) {
+    if (result.affectedRows === 0) {
       throw new Error("Failed to update data");
     }
 
     return Response.json({ data: "ok" });
   } catch (error) {
-    console.error("Error deleting data:", error.message);
+    console.error("Error updating data:", error.message);
     return Response.error("Failed to update data", { status: 500 });
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
   }
 }

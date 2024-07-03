@@ -6,6 +6,7 @@ export async function GET(request) {
   try {
     const { data: clients, error } = await supabase.from("client").select();
 
+    console.log(clients);
 
     if (error) {
       throw new Error("Failed to fetch data");
